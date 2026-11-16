@@ -1,3 +1,11 @@
+// 백엔드 공통 응답 봉투. 성공은 { success: true, data }(본문 없는 응답은 data가 없으므로 ApiResponse<void>로 받는다), 실패는 { success: false, code, message }.
+export interface ApiResponse<T> {
+  success: boolean
+  data: T
+  code?: string
+  message?: string
+}
+
 export type ApplicationStatus =
   | 'RESUME_SUBMITTED'
   | 'INTERVIEW'
