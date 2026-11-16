@@ -11,7 +11,7 @@ describe('companies API', () => {
 
   it('getCompanies: GET /api/companies를 호출한다', async () => {
     const mockData = [{ id: 1, name: '카카오', industry: 'IT', website: 'https://kakao.com', createdAt: '' }]
-    vi.mocked(apiClient.get).mockResolvedValue({ data: mockData })
+    vi.mocked(apiClient.get).mockResolvedValue({ data: { success: true, data: mockData } })
 
     const result = await getCompanies()
 
@@ -22,7 +22,7 @@ describe('companies API', () => {
   it('createCompany: POST /api/companies를 호출한다', async () => {
     const req = { name: '카카오', industry: 'IT', website: 'https://kakao.com' }
     const mockData = { id: 1, ...req, createdAt: '' }
-    vi.mocked(apiClient.post).mockResolvedValue({ data: mockData })
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { success: true, data: mockData } })
 
     const result = await createCompany(req)
 

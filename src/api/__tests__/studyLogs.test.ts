@@ -13,7 +13,7 @@ describe('studyLogs API', () => {
 
   it('getStudyLog: GET /api/me/study-logs/{id}를 호출한다', async () => {
     const log = { id: 7, studyDate: '2026-11-03', title: 'JPA', content: '내용', studyMinutes: 90 }
-    vi.mocked(apiClient.get).mockResolvedValue({ data: log })
+    vi.mocked(apiClient.get).mockResolvedValue({ data: { success: true, data: log } })
 
     const result = await getStudyLog(7)
 
@@ -22,7 +22,7 @@ describe('studyLogs API', () => {
   })
 
   it('getStudyLogs: from, to 쿼리 파라미터로 호출한다', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [] })
+    vi.mocked(apiClient.get).mockResolvedValue({ data: { success: true, data: [] } })
 
     await getStudyLogs('2026-10-06', '2026-11-04')
 
@@ -32,7 +32,7 @@ describe('studyLogs API', () => {
   })
 
   it('getHeatmap: GET /api/me/study-logs/heatmap을 from, to로 호출한다', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [{ date: '2026-11-04', count: 2, minutes: 90 }] })
+    vi.mocked(apiClient.get).mockResolvedValue({ data: { success: true, data: [{ date: '2026-11-04', count: 2, minutes: 90 }] } })
 
     const result = await getHeatmap('2025-11-02', '2026-11-04')
 
@@ -43,7 +43,7 @@ describe('studyLogs API', () => {
   })
 
   it('getStudyStats: GET /api/me/study-logs/stats를 호출한다', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: { currentStreak: 3, longestStreak: 21 } })
+    vi.mocked(apiClient.get).mockResolvedValue({ data: { success: true, data: { currentStreak: 3, longestStreak: 21 } } })
 
     const result = await getStudyStats()
 
@@ -53,7 +53,7 @@ describe('studyLogs API', () => {
 
   it('createStudyLog: POST /api/me/study-logs로 본문을 보내고 만들어진 글을 돌려받는다', async () => {
     const created = { id: 7, studyDate: '2026-11-03', title: 'JPA', content: '내용', studyMinutes: 90 }
-    vi.mocked(apiClient.post).mockResolvedValue({ data: created })
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { success: true, data: created } })
 
     const result = await createStudyLog({ studyDate: '2026-11-03', title: 'JPA', content: '내용', studyMinutes: 90 })
 
@@ -64,7 +64,7 @@ describe('studyLogs API', () => {
   })
 
   it('updateStudyLog: PUT /api/me/study-logs/{id}로 본문을 보낸다', async () => {
-    vi.mocked(apiClient.put).mockResolvedValue({ data: { id: 7 } })
+    vi.mocked(apiClient.put).mockResolvedValue({ data: { success: true, data: { id: 7 } } })
 
     await updateStudyLog(7, { title: 'JPA', content: '내용', studyMinutes: 90 })
 
@@ -72,7 +72,7 @@ describe('studyLogs API', () => {
   })
 
   it('deleteStudyLog: DELETE /api/me/study-logs/{id}를 호출한다', async () => {
-    vi.mocked(apiClient.delete).mockResolvedValue({ status: 204 })
+    vi.mocked(apiClient.delete).mockResolvedValue({ status: 200, data: { success: true } })
 
     await deleteStudyLog(7)
 

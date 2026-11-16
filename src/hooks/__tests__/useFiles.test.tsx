@@ -49,7 +49,7 @@ describe('파일 훅', () => {
 
   it('이미 삭제된 파일(FILE_NOT_FOUND)이면 목록을 다시 불러온다', async () => {
     const error = new AxiosError('x', '404', undefined, undefined, {
-      status: 404, data: { code: 'FILE_NOT_FOUND', message: '파일을 찾을 수 없습니다.' }, statusText: '', headers: {}, config: {} as never,
+      status: 404, data: { success: false, code: 'FILE_NOT_FOUND', message: '파일을 찾을 수 없습니다.' }, statusText: '', headers: {}, config: {} as never,
     })
     vi.mocked(deleteFile).mockRejectedValue(error)
     const { invalidate, wrapper } = setup()

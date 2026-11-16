@@ -10,7 +10,7 @@ describe('reviews API', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('getReviews: GET /api/reviews를 호출한다', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: [] })
+    vi.mocked(apiClient.get).mockResolvedValue({ data: { success: true, data: [] } })
 
     const result = await getReviews()
 
@@ -20,7 +20,7 @@ describe('reviews API', () => {
 
   it('writeReview: PATCH /api/reviews/{id}에 내용과 평점을 보낸다', async () => {
     const req = { content: '분위기가 좋았다', rating: 4 }
-    vi.mocked(apiClient.patch).mockResolvedValue({ data: { id: 1, ...req } })
+    vi.mocked(apiClient.patch).mockResolvedValue({ data: { success: true, data: { id: 1, ...req } } })
 
     const result = await writeReview(1, req)
 
