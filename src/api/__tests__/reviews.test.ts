@@ -25,6 +25,6 @@ describe('reviews API', () => {
     const result = await writeReview(1, req)
 
     expect(apiClient.patch).toHaveBeenCalledWith('/api/reviews/1', req)
-    expect(result.rating).toBe(4)
+    expect(result).toEqual({ id: 1, ...req })
   })
 })

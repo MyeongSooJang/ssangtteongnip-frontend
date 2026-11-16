@@ -19,9 +19,10 @@ describe('applications API', () => {
     const req = { companyId: 1, position: '백엔드', appliedDate: '2026-11-01', jobSite: 'SARAMIN' as const }
     vi.mocked(apiClient.post).mockResolvedValue({ data: { success: true, data: { id: 1 } } })
 
-    await createApplication(req)
+    const result = await createApplication(req)
 
     expect(apiClient.post).toHaveBeenCalledWith('/api/applications', req)
+    expect(result).toEqual({ id: 1 })
   })
 
   it('updateApplicationJobSite: PATCH /api/applications/{id}/job-site에 jobSite를 보낸다', async () => {
@@ -49,9 +50,10 @@ describe('applications API', () => {
     const req = { companyId: 1, position: '백엔드', appliedDate: '2026-11-01', jobSite: 'SARAMIN' as const, deadline: '2026-11-30' }
     vi.mocked(apiClient.post).mockResolvedValue({ data: { success: true, data: { id: 1 } } })
 
-    await createApplication(req)
+    const result = await createApplication(req)
 
     expect(apiClient.post).toHaveBeenCalledWith('/api/applications', req)
+    expect(result).toEqual({ id: 1 })
   })
 
   it('updateApplicationDeadline: PATCH /api/applications/{id}/deadline에 deadline을 보낸다', async () => {

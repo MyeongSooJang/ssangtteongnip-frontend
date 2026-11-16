@@ -26,9 +26,10 @@ describe('profile API', () => {
     }
     vi.mocked(apiClient.put).mockResolvedValue({ data: { success: true, data: { ...req, email: 'a@b.c', files: [] } } })
 
-    await updateMyProfile(req)
+    const result = await updateMyProfile(req)
 
     expect(apiClient.put).toHaveBeenCalledWith('/api/me/profile', req)
+    expect(result).toEqual({ ...req, email: 'a@b.c', files: [] })
   })
 
   it('uploadFile: file과 type 파트를 담은 FormData를 multipart로 POST한다', async () => {

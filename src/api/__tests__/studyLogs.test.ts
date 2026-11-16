@@ -66,9 +66,10 @@ describe('studyLogs API', () => {
   it('updateStudyLog: PUT /api/me/study-logs/{id}로 본문을 보낸다', async () => {
     vi.mocked(apiClient.put).mockResolvedValue({ data: { success: true, data: { id: 7 } } })
 
-    await updateStudyLog(7, { title: 'JPA', content: '내용', studyMinutes: 90 })
+    const result = await updateStudyLog(7, { title: 'JPA', content: '내용', studyMinutes: 90 })
 
     expect(apiClient.put).toHaveBeenCalledWith('/api/me/study-logs/7', { title: 'JPA', content: '내용', studyMinutes: 90 })
+    expect(result).toEqual({ id: 7 })
   })
 
   it('deleteStudyLog: DELETE /api/me/study-logs/{id}를 호출한다', async () => {
