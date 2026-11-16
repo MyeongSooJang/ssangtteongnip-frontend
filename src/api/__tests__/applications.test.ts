@@ -17,15 +17,16 @@ describe('applications API', () => {
 
   it('createApplication: 지원 사이트를 요청 본문에 담아 POST /api/applications를 호출한다', async () => {
     const req = { companyId: 1, position: '백엔드', appliedDate: '2026-11-01', jobSite: 'SARAMIN' as const }
-    vi.mocked(apiClient.post).mockResolvedValue({ data: { id: 1 } })
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { success: true, data: { id: 1 } } })
 
-    await createApplication(req)
+    const result = await createApplication(req)
 
     expect(apiClient.post).toHaveBeenCalledWith('/api/applications', req)
+    expect(result).toEqual({ id: 1 })
   })
 
   it('updateApplicationJobSite: PATCH /api/applications/{id}/job-site에 jobSite를 보낸다', async () => {
-    vi.mocked(apiClient.patch).mockResolvedValue({ data: { id: 7, jobSite: 'WANTED' } })
+    vi.mocked(apiClient.patch).mockResolvedValue({ data: { success: true, data: { id: 7, jobSite: 'WANTED' } } })
 
     const result = await updateApplicationJobSite(7, 'WANTED')
 
@@ -37,7 +38,7 @@ describe('applications API', () => {
     const stats = [
       { jobSite: 'SARAMIN', applicationCount: 10, documentPassedCount: 3, documentPassRate: 0.3 },
     ]
-    vi.mocked(apiClient.get).mockResolvedValue({ data: stats })
+    vi.mocked(apiClient.get).mockResolvedValue({ data: { success: true, data: stats } })
 
     const result = await getJobSiteStats()
 
@@ -47,15 +48,16 @@ describe('applications API', () => {
 
   it('createApplication: 마감일이 있으면 요청 본문에 함께 담는다', async () => {
     const req = { companyId: 1, position: '백엔드', appliedDate: '2026-11-01', jobSite: 'SARAMIN' as const, deadline: '2026-11-30' }
-    vi.mocked(apiClient.post).mockResolvedValue({ data: { id: 1 } })
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { success: true, data: { id: 1 } } })
 
-    await createApplication(req)
+    const result = await createApplication(req)
 
     expect(apiClient.post).toHaveBeenCalledWith('/api/applications', req)
+    expect(result).toEqual({ id: 1 })
   })
 
   it('updateApplicationDeadline: PATCH /api/applications/{id}/deadline에 deadline을 보낸다', async () => {
-    vi.mocked(apiClient.patch).mockResolvedValue({ data: { id: 7, deadline: '2026-11-30' } })
+    vi.mocked(apiClient.patch).mockResolvedValue({ data: { success: true, data: { id: 7, deadline: '2026-11-30' } } })
 
     const result = await updateApplicationDeadline(7, '2026-11-30')
 
@@ -64,7 +66,7 @@ describe('applications API', () => {
   })
 
   it('updateApplicationResumeView: PATCH /api/applications/{id}/resume-view에 resumeView를 보낸다', async () => {
-    vi.mocked(apiClient.patch).mockResolvedValue({ data: { id: 7, resumeView: 'VIEWED' } })
+    vi.mocked(apiClient.patch).mockResolvedValue({ data: { success: true, data: { id: 7, resumeView: 'VIEWED' } } })
 
     const result = await updateApplicationResumeView(7, 'VIEWED')
 

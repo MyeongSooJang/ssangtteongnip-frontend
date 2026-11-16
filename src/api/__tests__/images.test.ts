@@ -6,7 +6,7 @@ describe('uploadImage', () => {
   beforeEach(() => vi.restoreAllMocks())
 
   it('파일을 multipart로 올리고 본문에 넣을 경로를 돌려준다', async () => {
-    const post = vi.spyOn(apiClient, 'post').mockResolvedValue({ data: { url: '/api/images/abc' } })
+    const post = vi.spyOn(apiClient, 'post').mockResolvedValue({ data: { success: true, data: { url: '/api/images/abc' } } })
     const file = new File(['x'], 'a.png', { type: 'image/png' })
 
     const url = await uploadImage(file)

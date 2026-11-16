@@ -7,7 +7,7 @@ const axiosError = (data: unknown) =>
 
 describe('errors', () => {
   it('getErrorCode: 백엔드 에러 응답의 code를 반환한다', () => {
-    expect(getErrorCode(axiosError({ code: 'EMAIL_NOT_VERIFIED', message: '인증 필요' }))).toBe('EMAIL_NOT_VERIFIED')
+    expect(getErrorCode(axiosError({ success: false, code: 'EMAIL_NOT_VERIFIED', message: '인증 필요' }))).toBe('EMAIL_NOT_VERIFIED')
   })
 
   it('getErrorCode: axios 에러가 아니면 undefined를 반환한다', () => {
@@ -15,7 +15,7 @@ describe('errors', () => {
   })
 
   it('getErrorMessage: 백엔드 메시지가 있으면 그것을 쓴다', () => {
-    expect(getErrorMessage(axiosError({ message: '인증 필요' }), 'fallback')).toBe('인증 필요')
+    expect(getErrorMessage(axiosError({ success: false, message: '인증 필요' }), 'fallback')).toBe('인증 필요')
   })
 
   it('getErrorMessage: 백엔드 메시지가 없으면 fallback을 쓴다', () => {

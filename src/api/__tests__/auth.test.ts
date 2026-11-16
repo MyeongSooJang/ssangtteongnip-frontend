@@ -11,7 +11,7 @@ describe('auth API', () => {
 
   it('signup: POST /api/auth/signup을 호출한다', async () => {
     const req = { email: 'hong@example.com', name: '홍길동', password: 'password1' }
-    vi.mocked(apiClient.post).mockResolvedValue({ data: { accessToken: 'jwt' } })
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { success: true, data: { accessToken: 'jwt' } } })
 
     const result = await signup(req)
 
@@ -20,7 +20,7 @@ describe('auth API', () => {
   })
 
   it('sendEmailVerification: POST /api/auth/email-verifications를 호출한다', async () => {
-    vi.mocked(apiClient.post).mockResolvedValue({ data: undefined })
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { success: true } })
 
     await sendEmailVerification({ email: 'hong@example.com' })
 
@@ -28,7 +28,7 @@ describe('auth API', () => {
   })
 
   it('confirmEmailVerification: POST /api/auth/email-verifications/confirm을 호출한다', async () => {
-    vi.mocked(apiClient.post).mockResolvedValue({ data: undefined })
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { success: true } })
 
     await confirmEmailVerification({ email: 'hong@example.com', code: '123456' })
 
@@ -40,7 +40,7 @@ describe('auth API', () => {
 
   it('login: POST /api/auth/login을 호출한다', async () => {
     const req = { email: 'hong@example.com', password: 'password1' }
-    vi.mocked(apiClient.post).mockResolvedValue({ data: { accessToken: 'jwt' } })
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { success: true, data: { accessToken: 'jwt' } } })
 
     const result = await login(req)
 

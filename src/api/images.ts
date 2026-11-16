@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/axios'
+import type { ApiResponse } from './types'
 
 const IMAGE_PATH_PREFIX = '/api/images/'
 
@@ -8,8 +9,8 @@ export const uploadImage = (file: File) => {
   const formData = new FormData()
   formData.append('file', file)
   return apiClient
-    .post<{ url: string }>('/api/me/images', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
-    .then(r => r.data.url)
+    .post<ApiResponse<{ url: string }>>('/api/me/images', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+    .then(r => r.data.data.url)
 }
 
 // 본문에는 도메인 없는 경로만 저장하므로, 화면에 보여 줄 때 API 주소를 붙인다. 다른 주소(외부 링크 등)는 그대로 둔다.

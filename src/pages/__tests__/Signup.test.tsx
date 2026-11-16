@@ -182,7 +182,7 @@ describe('Signup', () => {
     signupMutate.mockImplementation((_data, options) =>
       options.onError(new AxiosError('failed', '400', undefined, undefined, {
         status: 400,
-        data: { code: 'EMAIL_NOT_VERIFIED', message: '이메일 인증이 필요합니다.' },
+        data: { success: false, code: 'EMAIL_NOT_VERIFIED', message: '이메일 인증이 필요합니다.' },
       } as AxiosResponse)))
     renderSignup()
     const user = userEvent.setup()

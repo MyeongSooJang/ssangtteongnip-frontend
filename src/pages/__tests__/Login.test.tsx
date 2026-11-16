@@ -68,7 +68,7 @@ describe('Login', () => {
       isPending: false,
       error: new AxiosError('failed', 'ERR_BAD_REQUEST', undefined, undefined, {
         status: 401,
-        data: { code: 'INVALID_CREDENTIALS', message: '이메일 또는 비밀번호가 올바르지 않습니다.' },
+        data: { success: false, code: 'INVALID_CREDENTIALS', message: '이메일 또는 비밀번호가 올바르지 않습니다.' },
       } as never),
     }
     renderLogin()
