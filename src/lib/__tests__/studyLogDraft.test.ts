@@ -121,7 +121,7 @@ describe('studyLogDraft', () => {
       put('study-log-draft:v1:8:old', NOW - 90 * DAY)
       put('study-log-draft:v1:70:old', NOW - 90 * DAY)
       put('other-feature:7:old', NOW - 90 * DAY)
-      localStorage.setItem('job-tracker.accessToken', 'token')
+      localStorage.setItem('ssangtteongnip.accessToken', 'token')
 
       purgeStaleDrafts('7', NOW)
 

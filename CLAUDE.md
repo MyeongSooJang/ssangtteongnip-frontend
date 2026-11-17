@@ -1,4 +1,4 @@
-# job-tracker-frontend 작업 규칙
+# ssangtteongnip-frontend 작업 규칙
 
 커밋 메시지 형식, 브랜치, PR 절차는 전역 `commit-and-pr-format` 스킬을 따른다. 아래는 이 프로젝트에서 추가로 지키는 규칙이다.
 
@@ -16,7 +16,7 @@
 1. 개발 서버를 켠다 (`npm run dev -- --host 127.0.0.1`). 이미 켜져 있으면 재사용한다.
 2. 프로젝트 루트에 `mock-preview.html`과 `src/mock-preview.tsx`를 임시로 만든다.
    - `apiClient.defaults.adapter`를 바꿔 API 응답을 메모리의 가짜 데이터로 대신한다.
-   - `localStorage`에 `sub`가 들어 있는 가짜 토큰(`job-tracker.accessToken`)을 넣어 로그인된 상태로 만든다.
+   - `localStorage`에 `sub`가 들어 있는 가짜 토큰(`ssangtteongnip.accessToken`)을 넣어 로그인된 상태로 만든다.
    - 실제 `App`을 `MemoryRouter`(시작 경로는 확인할 화면)로 렌더링한다. 컴포넌트를 따로 떼어 그리지 않아야 실제 연결 로직까지 확인된다.
    - 가짜 데이터는 확인할 동작이 드러나도록 충분히 만든다 (예: 날짜별 여러 글, 쉬는 날 포함).
 3. 브라우저로 `http://127.0.0.1:5173/mock-preview.html`을 연다.

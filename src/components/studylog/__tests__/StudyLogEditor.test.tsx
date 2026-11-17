@@ -377,7 +377,7 @@ describe('StudyLogEditor', () => {
 
     beforeEach(() => {
       localStorage.clear()
-      localStorage.setItem('job-tracker.accessToken', tokenFor('7'))
+      localStorage.setItem('ssangtteongnip.accessToken', tokenFor('7'))
       vi.useFakeTimers({ shouldAdvanceTime: true })
       // 보관 기간 정리와 "오늘" 표기가 실제 날짜에 흔들리지 않도록 시계를 고정한다.
       vi.setSystemTime(new Date(2026, 10, 3, 18, 0))

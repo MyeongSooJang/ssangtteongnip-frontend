@@ -1,4 +1,4 @@
-const TOKEN_KEY = 'job-tracker.accessToken'
+const TOKEN_KEY = 'ssangtteongnip.accessToken'
 
 // 토큰이 만료/무효가 되어 서버가 401을 돌려줬을 때 AuthProvider가 듣는 이벤트
 export const UNAUTHORIZED_EVENT = 'auth:unauthorized'
