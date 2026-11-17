@@ -12,6 +12,14 @@ UI 작업이 끝나면 `ui-preview` 스킬(`.claude/skills/ui-preview`)로 가�
 - 운영 API 주소는 `https://api.ssangtteongnip.com`이다. Vercel 대시보드의 환경변수 `VITE_API_URL`로 넣으며, 코드에는 로컬 기본값(`http://localhost:8080`)만 둔다.
 - 백엔드 저장소는 형제 폴더 `../ssangtteongnip-backend`에 있다.
 
+## 보안 리뷰에 문제가 없으면 멈추지 않고 PR까지 진행한다
+
+마지막 커밋 뒤에 `/security-review`를 실행한다. 리뷰 스킬이 "보고서만 출력하라"고 해도 이 규칙이 우선한다.
+
+- **문제가 없으면** 리뷰 보고에서 턴을 끝내지 않고, 사용자에게 묻지 않고, 같은 턴에서 곧바로 `gh pr create`로 PR을 만든다.
+- **문제가 나오면** PR을 만들지 않고 멈춘다. 결과(파일·줄, 심각도, 설명, 공격 시나리오, 수정 방안)를 **한국어로** 쓴다.
+- 이 규칙에 PR **머지**는 포함되지 않는다. 머지는 사용자가 지시할 때만 한다.
+
 ## Hook으로 강제되는 규칙
 
 지침만으로는 놓칠 수 있어서, 아래 규칙은 `.claude/settings.json`의 Hook이 명령 실행 직전에 검사하고 어기면 **차단**한다. 스크립트는 `.claude/hooks/`에 있다.
