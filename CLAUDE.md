@@ -1,6 +1,6 @@
 # ssangtteongnip-frontend 작업 규칙
 
-커밋 메시지 형식, 브랜치, PR 절차는 전역 `commit-and-pr-format` 스킬을 따른다. 아래는 이 프로젝트에서 추가로 지키는 규칙이다.
+커밋 메시지 형식, 브랜치, PR 절차는 프로젝트 스킬 `.claude/skills/commit-and-pr-format`을 따른다. 아래는 이 프로젝트에서 추가로 지키는 규칙이다.
 
 ## 커밋은 변경 때마다 남긴다
 
