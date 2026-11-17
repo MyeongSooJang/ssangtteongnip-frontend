@@ -6,7 +6,7 @@ description: Use when creating git commits, branches, or pull requests in ssangt
 # Commit & PR Format (프론트엔드)
 
 Conventional Commits 기반. 모든 메시지와 PR 본문은 한국어로 작성한다.
-백엔드(`ssangtteongnip-backend`)의 같은 이름 스킬을 프론트엔드에 맞게 옮긴 것이다. 화면 확인·스크린샷·훅 같은 프론트 고유 규칙은 이 저장소의 `CLAUDE.md`에 있다.
+백엔드(`ssangtteongnip-backend`)의 같은 이름 스킬을 프론트엔드에 맞게 옮긴 것이다. 화면 확인·스크린샷 절차는 `ui-preview` 스킬에, 훅 규칙은 이 저장소의 `CLAUDE.md`에 있다.
 
 ## 협업 모드
 
