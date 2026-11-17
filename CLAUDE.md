@@ -6,6 +6,12 @@
 
 UI 작업이 끝나면 `ui-preview` 스킬(`.claude/skills/ui-preview`)로 가짜 데이터 화면을 띄워 보여주고, 화면이 바뀌는 PR에는 그 화면의 스크린샷을 첨부한다. 임시 파일 `mock-preview.*`는 커밋하지 않고, PR을 머지하기 전에 지우고 개발 서버도 종료한다.
 
+## 배포
+
+- Vercel에 배포하며(https://www.ssangtteongnip.com/), **`main`에 머지하면 자동으로 운영에 배포된다.** 그래서 머지는 사용자가 지시할 때만 하고, 머지 전에 테스트와 타입체크가 통과했는지 확인한다.
+- 운영 API 주소는 `https://api.ssangtteongnip.com`이다. Vercel 대시보드의 환경변수 `VITE_API_URL`로 넣으며, 코드에는 로컬 기본값(`http://localhost:8080`)만 둔다.
+- 백엔드 저장소는 형제 폴더 `../ssangtteongnip-backend`에 있다.
+
 ## Hook으로 강제되는 규칙
 
 지침만으로는 놓칠 수 있어서, 아래 규칙은 `.claude/settings.json`의 Hook이 명령 실행 직전에 검사하고 어기면 **차단**한다. 스크립트는 `.claude/hooks/`에 있다.
