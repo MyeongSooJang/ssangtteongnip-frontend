@@ -2,7 +2,7 @@
 
 **작성일:** 2026-10-26
 **작성자:** 장명수
-**범위:** React 프론트엔드 (백엔드 API: job-tracker Spring Boot)
+**범위:** React 프론트엔드 (백엔드 API: ssangtteongnip Spring Boot)
 
 ---
 
@@ -11,7 +11,7 @@
 취업 활동 추적 웹 서비스의 프론트엔드.
 백엔드(Spring Boot, `localhost:8080`)와 REST API로 연동하며, 회사 정보, 지원 현황, 면접 기록, 일정을 관리하는 UI를 제공한다.
 
-별도 저장소(`job-tracker-frontend`)로 분리 관리.
+별도 저장소(`ssangtteongnip-frontend`)로 분리 관리.
 
 ---
 
@@ -65,7 +65,7 @@
 ## 5. 프로젝트 구조
 
 ```
-job-tracker-frontend/
+ssangtteongnip-frontend/
 ├── src/
 │   ├── api/
 │   │   ├── types.ts          ← 백엔드 도메인 TypeScript 타입
