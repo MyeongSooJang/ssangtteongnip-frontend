@@ -23,9 +23,11 @@ export default function CompanyCombobox({ onSelect }: CompanyComboboxProps) {
   const keyword = text.trim()
   const debounced = useDebouncedValue(keyword, DEBOUNCE_MS)
   // 입력이 바뀌었는데 디바운스가 아직 안 끝났으면 이전 키워드의 후보를 보이지 않는다.
-  const { data, isError } = useCompanyCandidates(debounced)
+  const { data, isError, isFetching } = useCompanyCandidates(selected ? '' : debounced)
   const candidates = debounced === keyword && !isError ? (data ?? []) : []
 
+  // 후보가 오기 전의 엔터가 곧바로 직접 입력으로 확정되지 않게 한다.
+  const searching = debounced !== keyword || isFetching
   const showList = open && !selected && keyword.length > 0
   const directIndex = candidates.length
   const optionCount = directIndex + 1
@@ -64,7 +66,7 @@ export default function CompanyCombobox({ onSelect }: CompanyComboboxProps) {
     } else if (e.key === 'Enter') {
       // 목록이 열려 있을 때의 엔터는 폼 제출이 아니라 후보 선택이다.
       e.preventDefault()
-      chooseAt(activeIndex)
+      if (!searching) chooseAt(activeIndex)
     } else if (e.key === 'Escape') {
       setOpen(false)
     }
@@ -95,6 +97,7 @@ export default function CompanyCombobox({ onSelect }: CompanyComboboxProps) {
       {showList && (
         <ul
           id={listId}
+          aria-busy={searching}
           role="listbox"
           aria-label="회사 후보"
           className="absolute z-50 mt-1 max-h-64 w-full overflow-auto rounded-md border bg-white py-1 shadow-md"

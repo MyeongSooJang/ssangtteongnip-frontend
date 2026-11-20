@@ -36,6 +36,7 @@ vi.mock('@/hooks/useCompanies', () => ({
         ]
       : [],
     isError: false,
+    isFetching: false,
   }),
 }))
 
