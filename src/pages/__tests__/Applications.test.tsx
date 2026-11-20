@@ -28,8 +28,21 @@ vi.mock('@/hooks/useApplications', () => ({
 }))
 
 vi.mock('@/hooks/useCompanies', () => ({
-  useCompanies: () => ({ data: [{ id: 1, name: '카카오' }], isLoading: false }),
+  useCompanyCandidates: (keyword: string) => ({
+    data: keyword.startsWith('카카오')
+      ? [
+          { name: '카카오', listed: true, companyId: 1 },
+          { name: '카카오뱅크', listed: true, companyId: null },
+        ]
+      : [],
+    isError: false,
+  }),
 }))
+
+const resolveCompanyId = vi.hoisted(() =>
+  vi.fn(async (c: { companyId: number | null }) => c.companyId ?? 99),
+)
+vi.mock('@/lib/resolveCompany', () => ({ resolveCompanyId }))
 
 const qc = new QueryClient()
 const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -48,8 +61,13 @@ async function pickOption(trigger: HTMLElement, optionName: string) {
   await userEvent.click(await screen.findByRole('option', { name: optionName }))
 }
 
-// 회사 선택 상자는 접근 가능한 이름이 없어 첫 번째 combobox로 찾는다.
-const companySelect = () => screen.getAllByRole('combobox')[0]
+const companyInput = () => screen.getByRole('combobox', { name: /회사/ })
+
+// 후보 목록은 입력 후 디바운스가 지나야 뜬다.
+async function pickCompany(typed: string, optionName: string | RegExp) {
+  await userEvent.type(companyInput(), typed)
+  await userEvent.click(await screen.findByRole('option', { name: optionName }))
+}
 const jobSiteSelect = () => screen.getByRole('combobox', { name: '지원 사이트' })
 
 describe('Applications', () => {
@@ -63,7 +81,7 @@ describe('Applications', () => {
     createMutate.mockClear()
     render(<Applications />, { wrapper })
     await userEvent.click(screen.getByRole('button', { name: '지원 등록' }))
-    await pickOption(companySelect(), '카카오')
+    await pickCompany('카카오', /^카카오(?!뱅크)/)
     await userEvent.type(screen.getByLabelText('직무 *'), '백엔드')
     await userEvent.type(screen.getByLabelText('지원일 *'), '2026-11-01')
     await pickOption(jobSiteSelect(), '자사 홈페이지')
@@ -79,7 +97,7 @@ describe('Applications', () => {
   it('지원 사이트를 고르지 않으면 등록할 수 없다', async () => {
     render(<Applications />, { wrapper })
     await userEvent.click(screen.getByRole('button', { name: '지원 등록' }))
-    await pickOption(companySelect(), '카카오')
+    await pickCompany('카카오', /^카카오(?!뱅크)/)
     await userEvent.type(screen.getByLabelText('직무 *'), '백엔드')
     await userEvent.type(screen.getByLabelText('지원일 *'), '2026-11-01')
 
@@ -175,7 +193,7 @@ describe('Applications', () => {
     createMutate.mockClear()
     render(<Applications />, { wrapper })
     await userEvent.click(screen.getByRole('button', { name: '지원 등록' }))
-    await pickOption(companySelect(), '카카오')
+    await pickCompany('카카오', /^카카오(?!뱅크)/)
     await userEvent.type(screen.getByLabelText('직무 *'), '백엔드')
     await userEvent.type(screen.getByLabelText('지원일 *'), '2026-11-01')
     await pickOption(jobSiteSelect(), '사람인')
@@ -187,5 +205,79 @@ describe('Applications', () => {
       { companyId: 1, position: '백엔드', appliedDate: '2026-11-01', jobSite: 'SARAMIN', deadline: '2026-11-30' },
       expect.anything(),
     )
+  })
+
+  it('후보에 상장 배지와 등록됨 표시를 보여 준다', async () => {
+    createMutate.mockClear()
+    render(<Applications />, { wrapper })
+    await userEvent.click(screen.getByRole('button', { name: '지원 등록' }))
+    await userEvent.type(companyInput(), '카카오')
+
+    expect(await screen.findByRole('option', { name: /카카오뱅크/ })).toBeInTheDocument()
+    expect(screen.getAllByText('상장')).toHaveLength(2)
+    expect(screen.getByText('등록됨')).toBeInTheDocument()
+  })
+
+  it('등록 전 후보를 고르면 회사를 등록한 id로 지원 건을 만든다', async () => {
+    createMutate.mockClear()
+    resolveCompanyId.mockClear()
+    render(<Applications />, { wrapper })
+    await userEvent.click(screen.getByRole('button', { name: '지원 등록' }))
+    await pickCompany('카카오', /카카오뱅크/)
+    await userEvent.type(screen.getByLabelText('직무 *'), '백엔드')
+    await userEvent.type(screen.getByLabelText('지원일 *'), '2026-11-01')
+    await pickOption(jobSiteSelect(), '사람인')
+
+    await userEvent.click(screen.getByRole('button', { name: '등록' }))
+
+    expect(resolveCompanyId).toHaveBeenCalledWith({ name: '카카오뱅크', companyId: null })
+    expect(createMutate).toHaveBeenCalledWith(expect.objectContaining({ companyId: 99 }), expect.anything())
+  })
+
+  it('후보에 없으면 맨 아래 직접 입력으로 입력한 이름 그대로 쓴다', async () => {
+    resolveCompanyId.mockClear()
+    render(<Applications />, { wrapper })
+    await userEvent.click(screen.getByRole('button', { name: '지원 등록' }))
+    await pickCompany('내가쓴회사', /내가쓴회사.*직접 입력/)
+    await userEvent.type(screen.getByLabelText('직무 *'), '백엔드')
+    await userEvent.type(screen.getByLabelText('지원일 *'), '2026-11-01')
+    await pickOption(jobSiteSelect(), '사람인')
+
+    await userEvent.click(screen.getByRole('button', { name: '등록' }))
+
+    expect(resolveCompanyId).toHaveBeenCalledWith({ name: '내가쓴회사', companyId: null })
+  })
+
+  it('방향키와 엔터로 후보를 고른다', async () => {
+    render(<Applications />, { wrapper })
+    await userEvent.click(screen.getByRole('button', { name: '지원 등록' }))
+    await userEvent.type(companyInput(), '카카오')
+    await screen.findByRole('option', { name: /카카오뱅크/ })
+
+    await userEvent.keyboard('{ArrowDown}{Enter}')
+
+    expect(companyInput()).toHaveValue('카카오뱅크')
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+  })
+
+  it('고른 뒤 글자를 고치면 선택이 풀려 등록할 수 없다', async () => {
+    render(<Applications />, { wrapper })
+    await userEvent.click(screen.getByRole('button', { name: '지원 등록' }))
+    await userEvent.type(screen.getByLabelText('직무 *'), '백엔드')
+    await userEvent.type(screen.getByLabelText('지원일 *'), '2026-11-01')
+    await pickOption(jobSiteSelect(), '사람인')
+    await pickCompany('카카오', /^카카오(?!뱅크)/)
+    expect(screen.getByRole('button', { name: '등록' })).toBeEnabled()
+
+    await userEvent.type(companyInput(), '뱅')
+
+    expect(screen.getByRole('button', { name: '등록' })).toBeDisabled()
+  })
+
+  it('회사명 입력 안내 문구에 법인명으로 검색하라고 알려 준다', async () => {
+    render(<Applications />, { wrapper })
+    await userEvent.click(screen.getByRole('button', { name: '지원 등록' }))
+
+    expect(screen.getByText(/법인명으로 검색/)).toBeInTheDocument()
   })
 })

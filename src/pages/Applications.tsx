@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useApplications, useCreateApplication, useUpdateApplicationStatus } from '@/hooks/useApplications'
-import { useCompanies } from '@/hooks/useCompanies'
+import CompanyCombobox from '@/components/applications/CompanyCombobox'
+import { resolveCompanyId, type CompanySelection } from '@/lib/resolveCompany'
 import PassScheduleDialog from '@/components/schedules/PassScheduleDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -88,11 +89,10 @@ const FILTER_OPTIONS: Array<ApplicationStatus | 'ALL'> = [
 
 const PAGE_SIZE = 10
 
-const EMPTY_FORM = { companyId: '', position: '', appliedDate: '', jobSite: '' as JobSite | '', deadline: '' }
+const EMPTY_FORM = { position: '', appliedDate: '', jobSite: '' as JobSite | '', deadline: '' }
 
 export default function Applications() {
   const { data: applications = [], isLoading, isError } = useApplications()
-  const { data: companies = [] } = useCompanies()
   const { mutate: createApplication, isPending } = useCreateApplication()
 
   const [open, setOpen] = useState(false)
@@ -100,6 +100,9 @@ export default function Applications() {
   const [siteFilter, setSiteFilter] = useState<JobSiteFilter>('ALL')
   const [passed, setPassed] = useState<{ id: number; companyName: string } | null>(null)
   const [form, setForm] = useState(EMPTY_FORM)
+  const [company, setCompany] = useState<CompanySelection | null>(null)
+  const [resolving, setResolving] = useState(false)
+  const [submitError, setSubmitError] = useState(false)
 
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
@@ -122,12 +125,29 @@ export default function Applications() {
   // 필터·검색어가 바뀌면 결과의 처음부터 보여준다.
   const resetPage = () => setPage(1)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const resetForm = () => {
+    setForm(EMPTY_FORM)
+    setCompany(null)
+    setSubmitError(false)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.companyId || !form.jobSite) return
+    if (!company || !form.jobSite || resolving) return
+    setResolving(true)
+    setSubmitError(false)
+    let companyId: number
+    try {
+      companyId = await resolveCompanyId(company)
+    } catch {
+      setSubmitError(true)
+      return
+    } finally {
+      setResolving(false)
+    }
     createApplication(
       {
-        companyId: Number(form.companyId),
+        companyId,
         position: form.position,
         appliedDate: form.appliedDate,
         jobSite: form.jobSite,
@@ -136,7 +156,7 @@ export default function Applications() {
       {
         onSuccess: () => {
           setOpen(false)
-          setForm(EMPTY_FORM)
+          resetForm()
         },
       },
     )
@@ -144,7 +164,7 @@ export default function Applications() {
 
   const handleDialogChange = (isOpen: boolean) => {
     setOpen(isOpen)
-    if (!isOpen) setForm(EMPTY_FORM)
+    if (!isOpen) resetForm()
   }
 
   if (isLoading) return <div className="text-slate-500">불러오는 중...</div>
@@ -164,22 +184,8 @@ export default function Applications() {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label>회사 *</Label>
-                <Select
-                  value={form.companyId}
-                  onValueChange={(v) => setForm((f) => ({ ...f, companyId: v }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="회사 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {companies.map((c) => (
-                      <SelectItem key={c.id} value={String(c.id)}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="company">회사 *</Label>
+                <CompanyCombobox onSelect={setCompany} />
               </div>
               <div>
                 <Label htmlFor="position">직무 *</Label>
@@ -227,12 +233,15 @@ export default function Applications() {
                   onChange={(e) => setForm((f) => ({ ...f, deadline: e.target.value }))}
                 />
               </div>
+              {submitError && (
+                <p className="text-sm text-red-500">회사를 등록하지 못했습니다. 잠시 후 다시 시도해 주세요.</p>
+              )}
               <Button
                 type="submit"
-                disabled={isPending || !form.companyId || !form.jobSite}
+                disabled={isPending || resolving || !company || !form.jobSite}
                 className="w-full"
               >
-                {isPending ? '등록 중...' : '등록'}
+                {isPending || resolving ? '등록 중...' : '등록'}
               </Button>
             </form>
           </DialogContent>
