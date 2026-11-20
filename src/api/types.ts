@@ -28,6 +28,13 @@ export interface CompanyWithStats extends Company {
   averageRating: number | null
 }
 
+// 회사 자동완성 후보. companyId가 null이면 목록에만 있는 회사라 선택할 때 등록해야 한다.
+export interface CompanyCandidate {
+  name: string
+  listed: boolean
+  companyId: number | null
+}
+
 export type InterviewAtmosphere = 'COMFORTABLE' | 'NORMAL' | 'TENSE'
 
 export type ApplyRoute = 'ONLINE' | 'REFERRAL' | 'RECRUITER' | 'OTHER'
