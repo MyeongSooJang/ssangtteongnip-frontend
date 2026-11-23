@@ -9,6 +9,8 @@ import { buildColorMenu } from './colorMenu'
 import { blockDeletePlugin } from './blockDelete'
 import { notionCodeTheme } from './codeTheme'
 import { createImagePastePlugin } from './imagePaste'
+import { imageLayoutSchema, imageLayoutDecorations } from './imageLayout'
+import { imageControlsPlugin } from './imageControls'
 import { uploadImage, toDisplayUrl } from '@/api/images'
 import { getErrorMessage } from '@/lib/errors'
 import { BLOCK_EDIT_KO, IMAGE_BLOCK_KO, LINK_TOOLTIP_KO, TOOLBAR_KO } from './crepeKo'
@@ -56,7 +58,15 @@ export default function MarkdownEditor({ initialValue, onChange, placeholder, ar
       },
     })
     // 글자색·배경색: 마크다운에는 <span style="color:…">로 저장하는 커스텀 마크.
-    crepe.editor.config(stringifyTextColor).use(textColorPlugins).use(blockDeletePlugin).use(imagePastePlugin)
+    // 이미지 너비·정렬은 Crepe의 image-block 스키마를 덮어쓰므로 Crepe 기능이 모두 등록된 뒤(여기)에 넣는다.
+    crepe.editor
+      .config(stringifyTextColor)
+      .use(textColorPlugins)
+      .use(blockDeletePlugin)
+      .use(imagePastePlugin)
+      .use(imageLayoutSchema)
+      .use(imageLayoutDecorations)
+      .use(imageControlsPlugin)
     crepe.on(listener => {
       listener.markdownUpdated((_ctx, markdown, previous) => {
         if (markdown !== previous) onChangeRef.current(markdown)

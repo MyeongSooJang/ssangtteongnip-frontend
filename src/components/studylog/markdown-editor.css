@@ -139,3 +139,73 @@
   border-radius: 4px;
   padding: 0.2em 0.4em;
 }
+
+/* 이미지: 너비(--image-width)와 정렬(data-align)은 imageLayout.ts가 블록에 붙인다.
+   높이는 그림 비율에 맞춰 자동으로 정하고(Crepe의 인라인 높이를 덮어씀), 잘라 보이지 않게 contain으로 둔다. */
+.study-editor .milkdown .milkdown-image-block > .image-wrapper {
+  width: var(--image-width, 100%);
+  max-width: 100%;
+  margin: 0 auto;
+}
+.study-editor .milkdown .milkdown-image-block[data-align='left'] > .image-wrapper { margin: 0 auto 0 0; }
+.study-editor .milkdown .milkdown-image-block[data-align='right'] > .image-wrapper { margin: 0 0 0 auto; }
+.study-editor .milkdown .milkdown-image-block > .image-wrapper img {
+  width: 100%;
+  height: auto !important;
+  object-fit: contain;
+}
+/* 캡션도 이미지와 같은 너비·정렬로 맞춘다. */
+.study-editor .milkdown .milkdown-image-block > .caption-input {
+  width: var(--image-width, 100%);
+  margin: 0 auto;
+}
+.study-editor .milkdown .milkdown-image-block[data-align='left'] > .caption-input { margin: 0 auto 0 0; text-align: left; }
+.study-editor .milkdown .milkdown-image-block[data-align='right'] > .caption-input { margin: 0 0 0 auto; text-align: right; }
+/* Crepe의 아래쪽 세로 핸들은 가리고 양옆의 가로 핸들(study-image-handle)을 쓴다. */
+.study-editor .milkdown .milkdown-image-block > .image-wrapper > .image-resize-handle { display: none; }
+
+.study-image-toolbar {
+  position: fixed;
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.study-image-toolbar[hidden] { display: none; }
+.study-image-toolbar__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+  padding: 0 6px;
+  font-size: 12px;
+  color: #37352f;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.study-image-toolbar__item:hover { background: #f1f1ef; }
+.study-image-toolbar__item[aria-pressed='true'] { background: #e8f0fe; color: #1a56db; }
+.study-image-toolbar__divider { width: 1px; height: 16px; margin: 0 2px; background: #e5e5e5; }
+
+.study-image-handle {
+  position: fixed;
+  z-index: 1000;
+  width: 8px;
+  height: 36px;
+  padding: 0;
+  background: rgba(55, 53, 47, 0.7);
+  border: 1px solid #fff;
+  border-radius: 4px;
+  cursor: ew-resize;
+  touch-action: none;
+}
+.study-image-handle[hidden] { display: none; }
+.study-image-handle:hover { background: #1a56db; }
