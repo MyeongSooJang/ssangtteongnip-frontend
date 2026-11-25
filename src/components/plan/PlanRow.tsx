@@ -90,7 +90,7 @@ export default function PlanRow({ plan, today, defaultOpen = false }: PlanRowPro
             <PlanForm today={today} plan={plan} onDone={() => setEditing(false)} onCancel={() => setEditing(false)} />
           ) : (
             <>
-              <dl className="grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[5rem_minmax(0,1fr)]">
+              <dl className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm sm:grid-cols-[5rem_minmax(0,1fr)]">
                 {details.map(([label, value]) => (
                   <div key={label} className="contents">
                     <dt className="text-ink-600">{label}</dt>
