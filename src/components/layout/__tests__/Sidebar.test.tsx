@@ -13,5 +13,6 @@ describe('Sidebar', () => {
     expect(screen.getByText('일정')).toBeInTheDocument()
     expect(screen.getByText('내 면접 기록')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: '학습 기록' })).toHaveAttribute('href', '/study-logs')
+    expect(screen.getByRole('link', { name: '계획' })).toHaveAttribute('href', '/plans')
   })
 })
