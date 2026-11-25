@@ -23,6 +23,14 @@ vi.mock('@/hooks/useSchedules', () => ({
   useSchedules: () => ({ data: [], isLoading: false }),
 }))
 
+const plansResult = vi.hoisted(() => ({
+  value: {} as { data?: unknown; isError?: boolean },
+}))
+
+vi.mock('@/hooks/usePlans', () => ({
+  usePlans: () => plansResult.value,
+}))
+
 const qc = new QueryClient()
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <QueryClientProvider client={qc}><BrowserRouter>{children}</BrowserRouter></QueryClientProvider>
@@ -30,6 +38,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 
 describe('Dashboard', () => {
   beforeEach(() => {
+    plansResult.value = { data: [] }
     jobSiteStatsResult.value = {
       data: [{ jobSite: 'WANTED', applicationCount: 4, documentPassedCount: 3, documentPassRate: 0.75 }],
     }
@@ -68,6 +77,42 @@ describe('Dashboard', () => {
       render(<Dashboard />, { wrapper })
 
       expect(screen.getByText('최근 7일 동안 지원한 내역이 없습니다.')).toBeInTheDocument()
+    })
+  })
+
+  describe('오늘 계획', () => {
+    const todayPlan = {
+      id: 1, planDate: '', content: '트랜잭션 정리', category: null, doneCriteria: '표로 정리', estimatedMinutes: 60,
+      timeSlot: null, place: null, firstAction: null, status: 'DONE', actualMinutes: 50, missReason: null, memo: null,
+      completedAt: null, evidences: [],
+    }
+
+    it('오늘 계획 개수와 항목을 보여준다', () => {
+      plansResult.value = { data: [todayPlan] }
+
+      render(<Dashboard />, { wrapper })
+
+      expect(screen.getByText('오늘 계획')).toBeInTheDocument()
+      expect(screen.getByText('1개 중 1개 완료')).toBeInTheDocument()
+      expect(screen.getByText('트랜잭션 정리')).toBeInTheDocument()
+    })
+
+    it('불러오는 중이면 카드도 오류 문구도 보여주지 않는다', () => {
+      plansResult.value = { data: undefined }
+
+      render(<Dashboard />, { wrapper })
+
+      expect(screen.queryByText('오늘 계획')).not.toBeInTheDocument()
+      expect(screen.queryByText('오늘 계획을 불러오지 못했습니다.')).not.toBeInTheDocument()
+    })
+
+    it('오늘 계획만 불러오지 못하면 그 자리에 안내하고 나머지 대시보드는 그대로 보여준다', () => {
+      plansResult.value = { data: undefined, isError: true }
+
+      render(<Dashboard />, { wrapper })
+
+      expect(screen.getByText('오늘 계획을 불러오지 못했습니다.')).toBeInTheDocument()
+      expect(screen.getByText('전체 지원').parentElement!.parentElement).toHaveTextContent('2')
     })
   })
 

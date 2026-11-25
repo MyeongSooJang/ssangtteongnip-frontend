@@ -8,6 +8,7 @@ import Applications from '@/pages/Applications'
 import ApplicationDetail from '@/pages/ApplicationDetail'
 import InterviewDetail from '@/pages/InterviewDetail'
 import Schedules from '@/pages/Schedules'
+import Plans from '@/pages/Plans'
 import Reviews from '@/pages/Reviews'
 import StudyLogs from '@/pages/StudyLogs'
 import StudyLogWrite from '@/pages/StudyLogWrite'
@@ -43,6 +44,7 @@ export default function App() {
                 <Route path="/applications/:id" element={<ApplicationDetail />} />
                 <Route path="/applications/:applicationId/interviews/:interviewId" element={<InterviewDetail />} />
                 <Route path="/schedules" element={<Schedules />} />
+                <Route path="/plans" element={<Plans />} />
                 <Route path="/reviews" element={<Reviews />} />
                 <Route path="/study-logs" element={<StudyLogs />} />
                 <Route path="/mypage" element={<MyPage />} />

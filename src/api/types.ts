@@ -276,3 +276,67 @@ export interface StudyStats {
   monthWrittenDays: number
   todayMinutes: number
 }
+
+// 계획 (하루 여러 개, planDate는 yyyy-MM-dd). 결과물은 링크(URL) 또는 업로드 파일(FILE).
+export type PlanCategory = 'APPLY' | 'SKILL' | 'OUTPUT' | 'LIFE'
+export type PlanStatus = 'PLANNED' | 'DONE' | 'FAILED'
+export type MissReason = 'TOO_BIG' | 'NOT_STARTED' | 'SCHEDULE' | 'CONDITION' | 'ETC'
+export type EvidenceType = 'URL' | 'FILE'
+
+export interface PlanEvidence {
+  id: number
+  type: EvidenceType
+  url: string | null
+  fileName: string | null
+  sizeBytes: number | null
+}
+
+export interface Plan {
+  id: number
+  planDate: string
+  content: string
+  category: PlanCategory | null
+  doneCriteria: string
+  estimatedMinutes: number
+  timeSlot: string | null
+  place: string | null
+  firstAction: string | null
+  status: PlanStatus
+  actualMinutes: number | null
+  missReason: MissReason | null
+  memo: string | null
+  completedAt: string | null
+  evidences: PlanEvidence[]
+}
+
+export interface PlanDetailInput {
+  content: string
+  category: PlanCategory | null
+  doneCriteria: string
+  estimatedMinutes: number
+  timeSlot?: string
+  place?: string
+  firstAction?: string
+}
+
+export interface PlanCreateRequest extends PlanDetailInput {
+  planDate: string
+}
+
+export interface PlanCompleteRequest {
+  actualMinutes: number
+  memo?: string
+}
+
+// 보내지 않은(undefined) 항목은 바꾸지 않는다. 메모만 빈 문자열로 보내 지울 수 있다.
+export interface PlanReflectionRequest {
+  actualMinutes?: number
+  missReason?: MissReason
+  memo?: string
+}
+
+export interface EvidenceDownload {
+  url: string
+  fileName: string
+  expiresAt: string
+}
