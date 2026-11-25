@@ -14,7 +14,9 @@ import PlanRow from '@/components/plan/PlanRow'
 export default function Plans() {
   const today = toDateKey(new Date())
   const [todayKey, tomorrowKey] = planDateOptions(today)
-  const [selected, setSelected] = useState(todayKey)
+  // 날짜 문자열이 아니라 위치로 기억한다. 자정이 지나 오늘이 바뀌어도 선택이 어느 탭도 가리키지 않는 상태가 되지 않는다.
+  const [dayIndex, setDayIndex] = useState<0 | 1>(0)
+  const selected = dayIndex === 0 ? todayKey : tomorrowKey
   const [adding, setAdding] = useState(false)
   const { data, isLoading, isError, refetch } = usePlans(todayKey, tomorrowKey)
 
@@ -36,16 +38,15 @@ export default function Plans() {
           <h1 className="text-2xl font-bold text-ink-900">계획</h1>
           <p className="mt-1 text-sm text-ink-600">{formatDayHeading(selected)}</p>
         </div>
-        <div role="tablist" aria-label="계획 날짜" className="flex rounded-md bg-white p-0.5 ring-1 ring-line">
+        <div role="group" aria-label="계획 날짜" className="flex rounded-md bg-white p-0.5 ring-1 ring-line">
           {tabs.map(tab => (
             <button
               key={tab.date}
               type="button"
-              role="tab"
-              aria-selected={selected === tab.date}
-              onClick={() => { setSelected(tab.date); setAdding(false) }}
+              aria-pressed={selected === tab.date}
+              onClick={() => { setDayIndex(tab.date === todayKey ? 0 : 1); setAdding(false) }}
               className={cn(
-                'rounded px-4 py-1.5 text-sm transition-colors duration-150',
+                'rounded px-4 py-2 text-sm transition-colors duration-150',
                 selected === tab.date ? 'bg-brand-500 font-medium text-white' : 'text-ink-600 hover:text-ink-900',
               )}
             >

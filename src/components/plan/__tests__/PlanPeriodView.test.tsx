@@ -51,10 +51,10 @@ describe('PlanPeriodView', () => {
     const user = userEvent.setup()
     render(<PlanPeriodView today={TODAY} />)
 
-    await user.click(screen.getByRole('tab', { name: '지난 30일' }))
+    await user.click(screen.getByRole('button', { name: '지난 30일' }))
 
     expect(state.calls.at(-1)).toEqual(['2026-10-26', '2026-11-24'])
-    expect(screen.getByRole('tab', { name: '지난 30일' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('button', { name: '지난 30일' })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('계획이 없으면 빈 안내를 보여준다', () => {

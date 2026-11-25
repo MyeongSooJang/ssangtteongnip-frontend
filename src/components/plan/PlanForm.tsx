@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import type { Plan, PlanCategory, PlanDetailInput } from '@/api/types'
 import { useCreatePlan, useRevisePlan } from '@/hooks/usePlans'
-import { formatDayHeading } from '@/lib/studyLog'
 import { getErrorMessage } from '@/lib/errors'
-import { CATEGORY_LABELS, planDateOptions, validatePlanDetail } from '@/lib/plan'
+import { CATEGORY_LABELS, MAX_MINUTES, monthDayLabel, planDateOptions, validatePlanDetail } from '@/lib/plan'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,6 +13,7 @@ interface PlanFormProps {
   today: string
   // 있으면 이 계획을 고친다(날짜는 바꿀 수 없다). 없으면 새로 만든다.
   plan?: Plan
+  // 주면 그 날짜로 만들고 날짜 선택을 보이지 않는다(계획 화면은 위쪽 오늘·내일 탭이 날짜를 정한다).
   defaultDate?: string
   onDone: () => void
   onCancel?: () => void
@@ -62,7 +62,7 @@ export default function PlanForm({ today, plan, defaultDate, onDone, onCancel }:
 
   return (
     <form onSubmit={e => void submit(e)} aria-label={plan ? '계획 수정' : '계획 추가'} className="space-y-3">
-      {!plan && (
+      {!plan && !defaultDate && (
         <div role="group" aria-label="계획 날짜" className="flex gap-2">
           {planDateOptions(today).map((date, index) => (
             <button
@@ -75,7 +75,7 @@ export default function PlanForm({ today, plan, defaultDate, onDone, onCancel }:
                 planDate === date ? 'border-brand-500 bg-brand-50 font-medium text-brand-700' : 'border-line text-ink-600 hover:bg-surface',
               )}
             >
-              {index === 0 ? '오늘' : '내일'} <span className="text-xs text-ink-600">{formatDayHeading(date).replace(/ .요일$/, '')}</span>
+              {index === 0 ? '오늘' : '내일'} <span className="text-xs text-ink-600">{monthDayLabel(date)}</span>
             </button>
           ))}
         </div>
@@ -91,7 +91,7 @@ export default function PlanForm({ today, plan, defaultDate, onDone, onCancel }:
       </label>
       <label className={cn(labelClass, 'max-w-[10rem]')}>
         목표 시간(분)
-        <Input type="number" min={1} inputMode="numeric" value={minutes} onChange={e => setMinutes(e.target.value)} className="tabular-nums" />
+        <Input type="number" min={1} max={MAX_MINUTES} inputMode="numeric" value={minutes} onChange={e => setMinutes(e.target.value)} className="tabular-nums" />
       </label>
 
       <div>

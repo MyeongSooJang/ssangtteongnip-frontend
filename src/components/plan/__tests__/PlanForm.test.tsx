@@ -46,6 +46,12 @@ describe('PlanForm', () => {
     expect(onDone).toHaveBeenCalled()
   })
 
+  it('날짜를 정해서 열면 날짜 선택을 보이지 않는다', () => {
+    render(<PlanForm today={TODAY} defaultDate={TODAY} onDone={vi.fn()} />)
+
+    expect(screen.queryByRole('group', { name: '계획 날짜' })).not.toBeInTheDocument()
+  })
+
   it('날짜는 오늘과 내일만 고를 수 있다', async () => {
     const user = userEvent.setup()
     mocks.create.mockResolvedValue({})

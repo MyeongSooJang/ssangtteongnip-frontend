@@ -86,12 +86,23 @@ describe('Plans 페이지', () => {
     }
     render(<Plans />)
 
-    expect(screen.getByRole('tab', { name: /오늘/ })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('button', { name: /^오늘\s*\d+$/ })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: /오늘 할 일/ })).toBeInTheDocument()
-    await user.click(screen.getByRole('tab', { name: /내일/ }))
+    await user.click(screen.getByRole('button', { name: /^내일\s*\d+$/ }))
 
     expect(screen.getByRole('button', { name: /내일 할 일/ })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /오늘 할 일/ })).not.toBeInTheDocument()
+  })
+
+  it('내일 탭에서 계획을 추가할 때 날짜 선택이 따로 없고 탭의 날짜를 쓴다', async () => {
+    const user = userEvent.setup()
+    render(<Plans />)
+
+    await user.click(screen.getByRole('button', { name: /^내일\s*\d+$/ }))
+
+    expect(screen.getByText('내일 할 일을 미리 적어 두세요.')).toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: '계획 날짜' }).querySelector('[aria-pressed="true"]')).toHaveTextContent('내일')
+    expect(screen.getByRole('form', { name: '계획 추가' }).querySelectorAll('[role="group"][aria-label="계획 날짜"]')).toHaveLength(0)
   })
 
   it('탭에 날짜별 계획 개수를 보여준다', () => {
@@ -102,8 +113,8 @@ describe('Plans 페이지', () => {
     }
     render(<Plans />)
 
-    expect(screen.getByRole('tab', { name: /오늘\s*2/ })).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: /내일\s*1/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^오늘\s*2$/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^내일\s*1$/ })).toBeInTheDocument()
   })
 
   it('불러오지 못하면 다시 시도 버튼을 보여준다', async () => {

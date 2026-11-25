@@ -25,16 +25,15 @@ export default function PlanPeriodView({ today }: { today: string }) {
     <section aria-labelledby="plan-period-heading" className={cn(cardClass, 'sm:p-5')}>
       <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 id="plan-period-heading" className="text-base font-semibold text-ink-900">지난 계획</h2>
-        <div role="tablist" aria-label="기간" className="flex rounded-md bg-surface p-0.5">
+        <div role="group" aria-label="기간" className="flex rounded-md bg-surface p-0.5">
           {KINDS.map(item => (
             <button
               key={item.value}
               type="button"
-              role="tab"
-              aria-selected={kind === item.value}
+              aria-pressed={kind === item.value}
               onClick={() => setKind(item.value)}
               className={cn(
-                'rounded px-3 py-1 text-sm transition-colors duration-150',
+                'rounded px-3 py-1.5 text-sm transition-colors duration-150',
                 kind === item.value ? 'bg-white font-medium text-ink-900 shadow-[0_1px_2px_rgba(16,24,40,0.08)]' : 'text-ink-600 hover:text-ink-900',
               )}
             >
