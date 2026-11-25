@@ -4,7 +4,7 @@ import { getEvidenceDownload } from '@/api/plans'
 import type { Plan, PlanEvidence } from '@/api/types'
 import { useAddFileEvidence, useAddLinkEvidence, useRemoveEvidence } from '@/hooks/usePlans'
 import { getErrorMessage } from '@/lib/errors'
-import { MAX_EVIDENCES, canAddEvidence, validateEvidenceFile, validateLink } from '@/lib/plan'
+import { MAX_EVIDENCES, canAddEvidence, canRemoveEvidence, validateEvidenceFile, validateLink } from '@/lib/plan'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -14,14 +14,15 @@ const formatSize = (bytes: number) =>
 const evidenceName = (evidence: PlanEvidence) => (evidence.type === 'URL' ? evidence.url : evidence.fileName) ?? '결과물'
 
 // 계획에 붙은 결과물(링크·파일). 못함 상태에서는 보기만 하고, 최대 개수에 닿으면 추가 입력을 숨긴다.
-export default function EvidenceList({ plan }: { plan: Plan }) {
+export default function EvidenceList({ plan, today }: { plan: Plan; today: string }) {
   const addLink = useAddLinkEvidence()
   const addFile = useAddFileEvidence()
   const remove = useRemoveEvidence()
   const fileInput = useRef<HTMLInputElement>(null)
   const [url, setUrl] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const editable = plan.status !== 'FAILED'
+  const addable = canAddEvidence(plan, today)
+  const removable = canRemoveEvidence(plan, today)
   const busy = addLink.isPending || addFile.isPending || remove.isPending
 
   const submitLink = async () => {
@@ -60,12 +61,17 @@ export default function EvidenceList({ plan }: { plan: Plan }) {
   }
 
   // 파일 주소는 짧게 유효한 임시 주소라 열 때마다 새로 받는다.
+  // 응답을 기다린 뒤에 열면 Safari 등에서 팝업으로 막히므로, 클릭 시점에 탭을 먼저 열고 주소가 오면 그 탭을 옮긴다.
   const openFile = async (evidence: PlanEvidence) => {
     setError(null)
+    const tab = window.open('', '_blank')
+    if (!tab) return setError('팝업이 막혀 파일을 열지 못했습니다. 브라우저에서 팝업을 허용해 주세요.')
+    tab.opener = null
     try {
       const { url: downloadUrl } = await getEvidenceDownload(plan.id, evidence.id)
-      window.open(downloadUrl, '_blank', 'noopener,noreferrer')
+      tab.location.href = downloadUrl
     } catch (e) {
+      tab.close()
       setError(getErrorMessage(e, '파일을 열지 못했습니다.'))
     }
   }
@@ -79,7 +85,7 @@ export default function EvidenceList({ plan }: { plan: Plan }) {
       </h4>
 
       {plan.evidences.length === 0 ? (
-        <p className="text-sm text-ink-600">{editable ? '링크나 파일을 붙여 두면 완료할 수 있습니다.' : '붙인 결과물이 없습니다.'}</p>
+        <p className="text-sm text-ink-600">{addable ? '링크나 파일을 붙여 두면 완료할 수 있습니다.' : '붙인 결과물이 없습니다.'}</p>
       ) : (
         <ul className="divide-y divide-line rounded-lg border border-line">
           {plan.evidences.map(evidence => (
@@ -97,13 +103,13 @@ export default function EvidenceList({ plan }: { plan: Plan }) {
               {evidence.type === 'FILE' && evidence.sizeBytes !== null && (
                 <span className="shrink-0 text-xs tabular-nums text-ink-600">{formatSize(evidence.sizeBytes)}</span>
               )}
-              {editable && (
+              {removable && (
                 <button
                   type="button"
                   aria-label={`${evidenceName(evidence)} 지우기`}
                   disabled={busy}
                   onClick={() => void removeOne(evidence)}
-                  className="shrink-0 rounded p-1 text-ink-600 transition-colors hover:bg-surface hover:text-ink-900 disabled:opacity-50"
+                  className="-my-1 -mr-1.5 shrink-0 rounded p-2.5 text-ink-600 transition-colors hover:bg-surface hover:text-ink-900 disabled:opacity-50 sm:p-1.5"
                 >
                   <X size={14} aria-hidden />
                 </button>
@@ -113,7 +119,7 @@ export default function EvidenceList({ plan }: { plan: Plan }) {
         </ul>
       )}
 
-      {canAddEvidence(plan) ? (
+      {addable ? (
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input
             type="url"
@@ -139,7 +145,7 @@ export default function EvidenceList({ plan }: { plan: Plan }) {
           </div>
         </div>
       ) : (
-        editable && <p className="text-xs text-ink-600">결과물은 {MAX_EVIDENCES}개까지 붙일 수 있습니다.</p>
+        plan.evidences.length >= MAX_EVIDENCES && <p className="text-xs text-ink-600">결과물은 {MAX_EVIDENCES}개까지 붙일 수 있습니다.</p>
       )}
 
       {error && <p role="alert" className="text-sm text-danger">{error}</p>}

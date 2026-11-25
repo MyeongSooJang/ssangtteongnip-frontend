@@ -25,6 +25,7 @@ export const STATUS_LABELS: Record<PlanStatus, string> = {
 // 결과물 개수·기간 한도는 서버 규칙이다. 화면에서 미리 막아 불필요한 요청을 줄일 뿐, 최종 판단은 서버가 한다.
 export const MAX_EVIDENCES = 5
 export const MAX_RANGE_DAYS = 62
+export const MAX_MINUTES = 24 * 60
 const MAX_FILE_BYTES = 5 * 1024 * 1024
 const EVIDENCE_FILE_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/gif', 'image/webp']
 
@@ -37,9 +38,25 @@ export const isEditable = (plan: Plan, today: string) => plan.status === 'PLANNE
 // 완료: 예정 상태의 오늘 계획만. 자정 이후에 끝낸 일은 이미 지난 날짜라 완료할 수 없다(서버의 의도된 제약).
 export const canComplete = (plan: Plan, today: string) => plan.status === 'PLANNED' && plan.planDate === today
 
-export const canAddEvidence = (plan: Plan) => plan.status !== 'FAILED' && plan.evidences.length < MAX_EVIDENCES
+// 서버 규칙: 완료이거나, 날짜가 지나지 않은 예정일 때만 추가할 수 있고 개수 한도가 있다.
+export const canAddEvidence = (plan: Plan, today: string) =>
+  (plan.status === 'DONE' || (plan.status === 'PLANNED' && plan.planDate >= today)) && plan.evidences.length < MAX_EVIDENCES
 
-export const needsReflection = (plan: Plan) => plan.status === 'FAILED'
+// 서버 규칙: 완료 계획은 결과물이 1개 이상 남아야 하므로 마지막 하나는 지울 수 없고, 못함·지난 예정은 아예 지울 수 없다.
+export const canRemoveEvidence = (plan: Plan, today: string) =>
+  plan.status === 'DONE' ? plan.evidences.length > 1 : plan.status === 'PLANNED' && plan.planDate >= today
+
+export function monthDayLabel(dateKey: string): string {
+  const [, month, day] = dateKey.split('-').map(Number)
+  return `${month}월 ${day}일`
+}
+
+// 실제 걸린 시간 입력(문자열)이 0분 이상 1440분 이하의 정수인지. 상한은 서버 규칙이다.
+export const ACTUAL_MINUTES_ERROR = `실제 걸린 시간을 0분 이상 ${MAX_MINUTES}분 이하로 입력해 주세요.`
+export function isValidActualMinutes(text: string): boolean {
+  const minutes = Number(text)
+  return text.trim() !== '' && Number.isInteger(minutes) && minutes >= 0 && minutes <= MAX_MINUTES
+}
 
 export interface PlanSummary {
   total: number
@@ -84,7 +101,9 @@ export function validatePlanDetail(input: { content: string; doneCriteria: strin
   if (doneCriteria.length === 0) return '완료 기준을 입력해 주세요.'
   if (doneCriteria.length > 200) return '완료 기준은 200자 이하여야 합니다.'
   const minutes = Number(input.estimatedMinutes)
-  if (!Number.isInteger(minutes) || minutes < 1) return '목표 시간을 1분 이상으로 입력해 주세요.'
+  if (input.estimatedMinutes.trim() === '' || !Number.isInteger(minutes) || minutes < 1 || minutes > MAX_MINUTES) {
+    return `목표 시간을 1분 이상 ${MAX_MINUTES}분 이하로 입력해 주세요.`
+  }
   return null
 }
 

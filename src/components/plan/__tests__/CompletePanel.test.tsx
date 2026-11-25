@@ -66,7 +66,7 @@ describe('CompletePanel', () => {
     await user.clear(screen.getByLabelText('실제 걸린 시간(분)'))
     await user.click(screen.getByRole('button', { name: '완료로 표시' }))
 
-    expect(screen.getByRole('alert')).toHaveTextContent('실제 걸린 시간을 0분 이상으로 입력해 주세요.')
+    expect(screen.getByRole('alert')).toHaveTextContent('실제 걸린 시간을 0분 이상 1440분 이하로 입력해 주세요.')
     expect(complete).not.toHaveBeenCalled()
   })
 

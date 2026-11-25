@@ -37,15 +37,21 @@ describe('ReflectionPanel', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('저장했습니다.')
   })
 
-  it('고른 이유를 다시 누르면 선택이 풀린다', async () => {
+  it('한 번 고른 이유는 지울 수 없고 다른 이유로만 바꾼다(서버는 값이 없으면 바꾸지 않는다)', async () => {
     const user = userEvent.setup()
+    reflect.mockResolvedValue({})
     render(<ReflectionPanel plan={plan({ missReason: 'ETC' })} />)
 
-    const button = screen.getByRole('button', { name: '기타' })
-    expect(button).toHaveAttribute('aria-pressed', 'true')
-    await user.click(button)
+    const etc = screen.getByRole('button', { name: '기타' })
+    expect(etc).toHaveAttribute('aria-pressed', 'true')
+    await user.click(etc)
+    expect(etc).toHaveAttribute('aria-pressed', 'true')
 
-    expect(button).toHaveAttribute('aria-pressed', 'false')
+    await user.click(screen.getByRole('button', { name: '일정이 밀렸다' }))
+    expect(etc).toHaveAttribute('aria-pressed', 'false')
+    await user.click(screen.getByRole('button', { name: '회고 저장' }))
+
+    expect(reflect).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ missReason: 'SCHEDULE' }) }))
   })
 
   it('완료한 계획은 메모만 남기며 못한 이유 입력이 없다(서버 규칙)', async () => {
@@ -68,7 +74,7 @@ describe('ReflectionPanel', () => {
     await user.type(screen.getByLabelText('실제 시간(분)'), '-5')
     await user.click(screen.getByRole('button', { name: '회고 저장' }))
 
-    expect(screen.getByRole('alert')).toHaveTextContent('실제 걸린 시간을 0분 이상으로 입력해 주세요.')
+    expect(screen.getByRole('alert')).toHaveTextContent('실제 걸린 시간을 0분 이상 1440분 이하로 입력해 주세요.')
     expect(reflect).not.toHaveBeenCalled()
   })
 })

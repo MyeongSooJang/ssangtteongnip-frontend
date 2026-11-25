@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { MissReason, Plan } from '@/api/types'
 import { useReflectPlan } from '@/hooks/usePlans'
 import { getErrorMessage } from '@/lib/errors'
-import { MISS_REASON_LABELS } from '@/lib/plan'
+import { ACTUAL_MINUTES_ERROR, MAX_MINUTES, MISS_REASON_LABELS, isValidActualMinutes } from '@/lib/plan'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,9 +21,7 @@ export default function ReflectionPanel({ plan }: { plan: Plan }) {
 
   const submit = async () => {
     const actualMinutes = Number(minutes)
-    if (failed && minutes.trim() !== '' && (!Number.isInteger(actualMinutes) || actualMinutes < 0)) {
-      return setError('실제 걸린 시간을 0분 이상으로 입력해 주세요.')
-    }
+    if (failed && minutes.trim() !== '' && !isValidActualMinutes(minutes)) return setError(ACTUAL_MINUTES_ERROR)
     setError(null)
     setSaved(false)
     try {
@@ -51,7 +49,8 @@ export default function ReflectionPanel({ plan }: { plan: Plan }) {
                 key={value}
                 type="button"
                 aria-pressed={reason === value}
-                onClick={() => setReason(reason === value ? null : value)}
+                // 서버는 값이 없으면 "바꾸지 않음"으로 보므로 한 번 고른 이유는 지울 수 없고 다른 이유로 바꾸기만 한다.
+                onClick={() => setReason(value)}
                 className={cn(
                   'rounded-md border px-3 py-1.5 text-sm transition-colors duration-150',
                   reason === value ? 'border-brand-500 bg-brand-50 font-medium text-brand-700' : 'border-line text-ink-600 hover:bg-surface',
@@ -63,7 +62,7 @@ export default function ReflectionPanel({ plan }: { plan: Plan }) {
           </div>
           <label className="block max-w-[8rem] space-y-1 text-sm font-medium text-ink-900">
             실제 시간(분)
-            <Input type="number" min={0} inputMode="numeric" value={minutes} onChange={e => setMinutes(e.target.value)} className="tabular-nums" />
+            <Input type="number" min={0} max={MAX_MINUTES} inputMode="numeric" value={minutes} onChange={e => setMinutes(e.target.value)} className="tabular-nums" />
           </label>
         </>
       )}

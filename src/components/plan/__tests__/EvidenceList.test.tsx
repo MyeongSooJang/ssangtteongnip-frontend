@@ -33,14 +33,14 @@ describe('EvidenceList', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('결과물이 없으면 붙이라는 안내와 입력칸을 보여준다', () => {
-    render(<EvidenceList plan={plan()} />)
+    render(<EvidenceList plan={plan()} today="2026-11-25" />)
 
     expect(screen.getByText('링크나 파일을 붙여 두면 완료할 수 있습니다.')).toBeInTheDocument()
     expect(screen.getByLabelText('결과물 링크')).toBeInTheDocument()
   })
 
   it('링크는 새 탭에서 열리고 opener를 끊는다', () => {
-    render(<EvidenceList plan={plan({ evidences: [link] })} />)
+    render(<EvidenceList plan={plan({ evidences: [link] })} today="2026-11-25" />)
 
     const anchor = screen.getByRole('link', { name: 'https://github.com/a/b' })
     expect(anchor).toHaveAttribute('target', '_blank')
@@ -50,7 +50,7 @@ describe('EvidenceList', () => {
   it('링크를 붙이면 id와 주소로 추가하고 입력칸을 비운다', async () => {
     const user = userEvent.setup()
     mocks.addLink.mockResolvedValue(link)
-    render(<EvidenceList plan={plan()} />)
+    render(<EvidenceList plan={plan()} today="2026-11-25" />)
 
     await user.type(screen.getByLabelText('결과물 링크'), ' https://github.com/a/b ')
     await user.click(screen.getByRole('button', { name: '링크 붙이기' }))
@@ -61,7 +61,7 @@ describe('EvidenceList', () => {
 
   it('http, https가 아닌 주소는 요청 없이 막는다', async () => {
     const user = userEvent.setup()
-    render(<EvidenceList plan={plan()} />)
+    render(<EvidenceList plan={plan()} today="2026-11-25" />)
 
     await user.type(screen.getByLabelText('결과물 링크'), 'javascript:alert(1)')
     await user.click(screen.getByRole('button', { name: '링크 붙이기' }))
@@ -72,7 +72,7 @@ describe('EvidenceList', () => {
 
   it('허용하지 않는 파일 형식은 요청 없이 막는다', async () => {
     const user = userEvent.setup({ applyAccept: false })
-    render(<EvidenceList plan={plan()} />)
+    render(<EvidenceList plan={plan()} today="2026-11-25" />)
 
     await user.upload(screen.getByLabelText('결과물 파일'), new File(['x'], 'a.zip', { type: 'application/zip' }))
 
@@ -84,30 +84,78 @@ describe('EvidenceList', () => {
     const user = userEvent.setup()
     mocks.addFile.mockResolvedValue(file)
     const pdf = new File(['x'], '정리.pdf', { type: 'application/pdf' })
-    render(<EvidenceList plan={plan()} />)
+    render(<EvidenceList plan={plan()} today="2026-11-25" />)
 
     await user.upload(screen.getByLabelText('결과물 파일'), pdf)
 
     expect(mocks.addFile).toHaveBeenCalledWith({ id: 7, file: pdf })
   })
 
-  it('파일 이름을 누르면 임시 주소를 받아 새 탭으로 연다', async () => {
+  it('파일 이름을 누르면 탭을 먼저 열고 임시 주소가 오면 그 탭을 옮긴다(팝업 차단을 피한다)', async () => {
     const user = userEvent.setup()
     vi.mocked(getEvidenceDownload).mockResolvedValue({ url: 'https://s3.example/x', fileName: '정리.pdf', expiresAt: '' })
-    const open = vi.spyOn(window, 'open').mockReturnValue(null)
-    render(<EvidenceList plan={plan({ evidences: [file] })} />)
+    const tab = { opener: 'window', location: { href: '' }, close: vi.fn() }
+    const open = vi.spyOn(window, 'open').mockReturnValue(tab as unknown as Window)
+    render(<EvidenceList plan={plan({ evidences: [file] })} today="2026-11-25" />)
 
     await user.click(screen.getByRole('button', { name: '정리.pdf' }))
 
-    await waitFor(() => expect(open).toHaveBeenCalledWith('https://s3.example/x', '_blank', 'noopener,noreferrer'))
+    expect(open).toHaveBeenCalledWith('', '_blank')
+    await waitFor(() => expect(tab.location.href).toBe('https://s3.example/x'))
+    expect(tab.opener).toBeNull()
     expect(getEvidenceDownload).toHaveBeenCalledWith(7, 2)
     open.mockRestore()
+  })
+
+  it('주소를 받지 못하면 먼저 연 탭을 닫고 오류를 보여준다', async () => {
+    const user = userEvent.setup()
+    vi.mocked(getEvidenceDownload).mockRejectedValue({ isAxiosError: true, response: { data: { message: '파일을 찾을 수 없습니다.' } } })
+    const tab = { opener: 'window', location: { href: '' }, close: vi.fn() }
+    const open = vi.spyOn(window, 'open').mockReturnValue(tab as unknown as Window)
+    render(<EvidenceList plan={plan({ evidences: [file] })} today="2026-11-25" />)
+
+    await user.click(screen.getByRole('button', { name: '정리.pdf' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('파일을 찾을 수 없습니다.')
+    expect(tab.close).toHaveBeenCalled()
+    open.mockRestore()
+  })
+
+  it('팝업이 막히면 요청 없이 안내한다', async () => {
+    const user = userEvent.setup()
+    const open = vi.spyOn(window, 'open').mockReturnValue(null)
+    render(<EvidenceList plan={plan({ evidences: [file] })} today="2026-11-25" />)
+
+    await user.click(screen.getByRole('button', { name: '정리.pdf' }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent('팝업이 막혀')
+    expect(getEvidenceDownload).not.toHaveBeenCalled()
+    open.mockRestore()
+  })
+
+  it('완료한 계획의 마지막 결과물에는 지우기 버튼이 없다(서버가 거절한다)', () => {
+    render(<EvidenceList plan={plan({ status: 'DONE', evidences: [link] })} today="2026-11-25" />)
+
+    expect(screen.queryByRole('button', { name: /지우기/ })).not.toBeInTheDocument()
+  })
+
+  it('완료한 계획도 결과물이 둘 이상이면 지울 수 있다', () => {
+    render(<EvidenceList plan={plan({ status: 'DONE', evidences: [link, file] })} today="2026-11-25" />)
+
+    expect(screen.getAllByRole('button', { name: /지우기/ })).toHaveLength(2)
+  })
+
+  it('날짜가 지난 예정 계획에는 추가·삭제가 없다', () => {
+    render(<EvidenceList plan={plan({ planDate: '2026-11-24', evidences: [link] })} today="2026-11-25" />)
+
+    expect(screen.queryByLabelText('결과물 링크')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /지우기/ })).not.toBeInTheDocument()
   })
 
   it('결과물을 지우면 서버에 알린다', async () => {
     const user = userEvent.setup()
     mocks.remove.mockResolvedValue(undefined)
-    render(<EvidenceList plan={plan({ evidences: [link] })} />)
+    render(<EvidenceList plan={plan({ evidences: [link] })} today="2026-11-25" />)
 
     await user.click(screen.getByRole('button', { name: 'https://github.com/a/b 지우기' }))
 
@@ -116,14 +164,14 @@ describe('EvidenceList', () => {
 
   it('최대 개수에 닿으면 추가 입력을 숨긴다', () => {
     const five = [1, 2, 3, 4, 5].map(id => ({ ...link, id, url: `https://a.b/${id}` }))
-    render(<EvidenceList plan={plan({ evidences: five })} />)
+    render(<EvidenceList plan={plan({ evidences: five })} today="2026-11-25" />)
 
     expect(screen.queryByLabelText('결과물 링크')).not.toBeInTheDocument()
     expect(screen.getByText('결과물은 5개까지 붙일 수 있습니다.')).toBeInTheDocument()
   })
 
   it('못함 상태에서는 보기만 하고 추가·삭제가 없다', () => {
-    render(<EvidenceList plan={plan({ status: 'FAILED', evidences: [link] })} />)
+    render(<EvidenceList plan={plan({ status: 'FAILED', evidences: [link] })} today="2026-11-25" />)
 
     expect(screen.queryByLabelText('결과물 링크')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /지우기/ })).not.toBeInTheDocument()
@@ -132,7 +180,7 @@ describe('EvidenceList', () => {
   it('서버가 거절하면 그 메시지를 보여준다', async () => {
     const user = userEvent.setup()
     mocks.addLink.mockRejectedValue({ isAxiosError: true, response: { data: { message: '결과물은 최대 5개까지 붙일 수 있습니다.' } } })
-    render(<EvidenceList plan={plan()} />)
+    render(<EvidenceList plan={plan()} today="2026-11-25" />)
 
     await user.type(screen.getByLabelText('결과물 링크'), 'https://a.b')
     await user.click(screen.getByRole('button', { name: '링크 붙이기' }))

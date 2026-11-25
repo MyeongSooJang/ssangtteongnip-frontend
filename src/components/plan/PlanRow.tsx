@@ -31,13 +31,12 @@ export default function PlanRow({ plan, today, defaultOpen = false }: PlanRowPro
   const failed = plan.status === 'FAILED'
   const done = plan.status === 'DONE'
 
-  const timeText = plan.actualMinutes !== null && !(plan.status === 'PLANNED')
+  const timeText = plan.status !== 'PLANNED' && plan.actualMinutes !== null
     ? formatMinutes(plan.actualMinutes)
     : `목표 ${formatMinutes(plan.estimatedMinutes)}`
 
   const details = [
     ['완료 기준', plan.doneCriteria],
-    ['목표 시간', formatMinutes(plan.estimatedMinutes)],
     ['시간대', plan.timeSlot],
     ['장소', plan.place],
     ['첫 행동', plan.firstAction],
@@ -99,7 +98,7 @@ export default function PlanRow({ plan, today, defaultOpen = false }: PlanRowPro
                 ))}
               </dl>
 
-              <EvidenceList plan={plan} />
+              <EvidenceList plan={plan} today={today} />
               {canComplete(plan, today) && <CompletePanel plan={plan} />}
               {(done || failed) && <ReflectionPanel plan={plan} />}
 

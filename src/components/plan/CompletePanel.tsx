@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Plan } from '@/api/types'
 import { useCompletePlan } from '@/hooks/usePlans'
 import { getErrorMessage } from '@/lib/errors'
+import { ACTUAL_MINUTES_ERROR, MAX_MINUTES, isValidActualMinutes } from '@/lib/plan'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -14,10 +15,8 @@ export default function CompletePanel({ plan }: { plan: Plan }) {
   const hasEvidence = plan.evidences.length > 0
 
   const submit = async () => {
+    if (!isValidActualMinutes(minutes)) return setError(ACTUAL_MINUTES_ERROR)
     const actualMinutes = Number(minutes)
-    if (minutes.trim() === '' || !Number.isInteger(actualMinutes) || actualMinutes < 0) {
-      return setError('실제 걸린 시간을 0분 이상으로 입력해 주세요.')
-    }
     setError(null)
     try {
       await complete.mutateAsync({ id: plan.id, data: { actualMinutes, memo: memo.trim() || undefined } })
@@ -31,7 +30,7 @@ export default function CompletePanel({ plan }: { plan: Plan }) {
       <div className="grid gap-3 sm:grid-cols-[8rem_1fr]">
         <label className="space-y-1 text-sm font-medium text-ink-900">
           실제 걸린 시간(분)
-          <Input type="number" min={0} inputMode="numeric" value={minutes} onChange={e => setMinutes(e.target.value)} className="tabular-nums" />
+          <Input type="number" min={0} max={MAX_MINUTES} inputMode="numeric" value={minutes} onChange={e => setMinutes(e.target.value)} className="tabular-nums" />
         </label>
         <label className="space-y-1 text-sm font-medium text-ink-900">
           메모 <span className="font-normal text-ink-600">(선택)</span>

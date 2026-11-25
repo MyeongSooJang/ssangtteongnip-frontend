@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import type { Plan } from '@/api/types'
 import {
-  MAX_EVIDENCES, canAddEvidence, canComplete, groupPlansByDate, isEditable, needsReflection, periodRange,
+  ACTUAL_MINUTES_ERROR, MAX_EVIDENCES, MAX_MINUTES, canAddEvidence, canComplete, canRemoveEvidence, groupPlansByDate,
+  isEditable, isValidActualMinutes, monthDayLabel, periodRange,
   planDateOptions, summarizePlans, validateEvidenceFile, validateLink, validatePlanDetail,
 } from '../plan'
 
@@ -39,17 +40,41 @@ describe('상태 규칙', () => {
     expect(canComplete(plan({ status: 'DONE' }), TODAY)).toBe(false)
   })
 
-  it('결과물 추가는 못함 상태에서 막히고 최대 개수에서 멈춘다', () => {
-    expect(canAddEvidence(plan())).toBe(true)
-    expect(canAddEvidence(plan({ status: 'DONE' }))).toBe(true)
-    expect(canAddEvidence(plan({ status: 'FAILED' }))).toBe(false)
+  it('결과물 추가는 서버처럼 완료이거나 날짜가 지나지 않은 예정일 때만 된다', () => {
+    expect(canAddEvidence(plan(), TODAY)).toBe(true)
+    expect(canAddEvidence(plan({ planDate: '2026-11-26' }), TODAY)).toBe(true)
+    expect(canAddEvidence(plan({ status: 'DONE', planDate: '2026-11-20' }), TODAY)).toBe(true)
+    expect(canAddEvidence(plan({ status: 'FAILED' }), TODAY)).toBe(false)
+    // 날짜는 지났지만 아직 자동 실패 처리 전인 예정 계획
+    expect(canAddEvidence(plan({ planDate: '2026-11-24' }), TODAY)).toBe(false)
     const full = Array.from({ length: MAX_EVIDENCES }, (_, i) => evidence(i + 1))
-    expect(canAddEvidence(plan({ evidences: full }))).toBe(false)
+    expect(canAddEvidence(plan({ evidences: full }), TODAY)).toBe(false)
   })
 
-  it('회고가 필요한 건 못함 상태뿐이다', () => {
-    expect(needsReflection(plan({ status: 'FAILED' }))).toBe(true)
-    expect(needsReflection(plan({ status: 'DONE' }))).toBe(false)
+  it('결과물 삭제는 완료 계획의 마지막 하나를 막고 못함·지난 예정은 모두 막는다', () => {
+    expect(canRemoveEvidence(plan({ evidences: [evidence(1)] }), TODAY)).toBe(true)
+    expect(canRemoveEvidence(plan({ status: 'DONE', evidences: [evidence(1), evidence(2)] }), TODAY)).toBe(true)
+    expect(canRemoveEvidence(plan({ status: 'DONE', evidences: [evidence(1)] }), TODAY)).toBe(false)
+    expect(canRemoveEvidence(plan({ status: 'FAILED', evidences: [evidence(1)] }), TODAY)).toBe(false)
+    expect(canRemoveEvidence(plan({ planDate: '2026-11-24', evidences: [evidence(1)] }), TODAY)).toBe(false)
+  })
+})
+
+describe('monthDayLabel', () => {
+  it('월·일만 보여준다', () => {
+    expect(monthDayLabel('2026-11-05')).toBe('11월 5일')
+  })
+})
+
+describe('isValidActualMinutes', () => {
+  it('0분 이상 1440분 이하의 정수만 받는다', () => {
+    expect(isValidActualMinutes('0')).toBe(true)
+    expect(isValidActualMinutes(String(MAX_MINUTES))).toBe(true)
+    expect(isValidActualMinutes('')).toBe(false)
+    expect(isValidActualMinutes('-1')).toBe(false)
+    expect(isValidActualMinutes(String(MAX_MINUTES + 1))).toBe(false)
+    expect(isValidActualMinutes('1.5')).toBe(false)
+    expect(ACTUAL_MINUTES_ERROR).toBe('실제 걸린 시간을 0분 이상 1440분 이하로 입력해 주세요.')
   })
 })
 
@@ -103,8 +128,10 @@ describe('validatePlanDetail', () => {
   it('필수 항목이 비면 메시지를 준다', () => {
     expect(validatePlanDetail({ ...valid, content: '  ' })).toBe('계획 내용을 입력해 주세요.')
     expect(validatePlanDetail({ ...valid, doneCriteria: '' })).toBe('완료 기준을 입력해 주세요.')
-    expect(validatePlanDetail({ ...valid, estimatedMinutes: '' })).toBe('목표 시간을 1분 이상으로 입력해 주세요.')
-    expect(validatePlanDetail({ ...valid, estimatedMinutes: '0' })).toBe('목표 시간을 1분 이상으로 입력해 주세요.')
+    const minutesError = '목표 시간을 1분 이상 1440분 이하로 입력해 주세요.'
+    expect(validatePlanDetail({ ...valid, estimatedMinutes: '' })).toBe(minutesError)
+    expect(validatePlanDetail({ ...valid, estimatedMinutes: '0' })).toBe(minutesError)
+    expect(validatePlanDetail({ ...valid, estimatedMinutes: String(MAX_MINUTES + 1) })).toBe(minutesError)
   })
 
   it('길이 한도를 넘으면 막는다', () => {
