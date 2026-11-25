@@ -84,14 +84,12 @@ describe('groupPlansByDate', () => {
 })
 
 describe('periodRange', () => {
-  it('주는 오늘 포함 지난 7일부터 내일까지다', () => {
-    expect(periodRange('week', TODAY)).toEqual({ from: '2026-11-19', to: '2026-11-26' })
+  it('주는 어제까지 지난 7일이다(오늘·내일은 위쪽 작업 영역에서 본다)', () => {
+    expect(periodRange('week', TODAY)).toEqual({ from: '2026-11-18', to: '2026-11-24' })
   })
 
-  it('월은 지난 30일부터 내일까지이고 서버 한도 62일 안이다', () => {
-    const { from, to } = periodRange('month', TODAY)
-    expect(from).toBe('2026-10-27')
-    expect(to).toBe('2026-11-26')
+  it('월은 어제까지 지난 30일이고 서버 한도 62일 안이다', () => {
+    expect(periodRange('month', TODAY)).toEqual({ from: '2026-10-26', to: '2026-11-24' })
   })
 })
 

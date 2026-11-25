@@ -70,10 +70,10 @@ export function groupPlansByDate(plans: Plan[]): Array<{ date: string; plans: Pl
     .map(([date, group]) => ({ date, plans: [...group].sort((a, b) => a.id - b.id) }))
 }
 
-// 오늘 포함 지난 7일(주) 또는 30일(월)부터 내일까지. 둘 다 서버 한도(62일) 안이다.
+// 어제까지 지난 7일(주) 또는 30일(월). 오늘·내일은 위쪽 작업 영역에서 다루므로 겹치지 않게 뺀다. 둘 다 서버 한도(62일) 안이다.
 export function periodRange(kind: 'week' | 'month', today: string): { from: string; to: string } {
   const days = kind === 'week' ? 7 : 30
-  return { from: addDays(today, -(days - 1)), to: addDays(today, 1) }
+  return { from: addDays(today, -days), to: addDays(today, -1) }
 }
 
 export function validatePlanDetail(input: { content: string; doneCriteria: string; estimatedMinutes: string }): string | null {
