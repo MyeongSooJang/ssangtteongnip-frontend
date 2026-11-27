@@ -341,3 +341,8 @@ export interface EvidenceDownload {
   fileName: string
   expiresAt: string
 }
+
+// 닉네임을 아직 정하지 않은 기존 가입자는 nickname이 null이다.
+export interface NicknameResponse {
+  nickname: string | null
+}

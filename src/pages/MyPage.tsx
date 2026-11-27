@@ -1,24 +1,32 @@
 import { useState } from 'react'
-import { FileText } from 'lucide-react'
+import { AtSign, FileText } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
 import { useProfile } from '@/hooks/useProfile'
 import { cn } from '@/lib/utils'
 import ProfileSummaryCard from '@/components/mypage/ProfileSummaryCard'
 import ProfileSection from '@/components/mypage/ProfileSection'
+import NicknameSection from '@/components/mypage/NicknameSection'
 import FileListCard from '@/components/mypage/FileListCard'
 import { PROFILE_SECTIONS } from '@/components/mypage/sections'
 
 const FILES_TAB = 'files'
+const NICKNAME_TAB = 'nickname'
 // 준비 시작일 필드가 있는 탭
 const START_DATE_TAB = 'basic'
 
 const TABS = [
   ...PROFILE_SECTIONS.map(section => ({ id: section.id as string, title: section.title, icon: section.icon })),
+  { id: NICKNAME_TAB, title: '닉네임', icon: AtSign },
   { id: FILES_TAB, title: '파일', icon: FileText },
 ]
 
 export default function MyPage() {
   const { data: profile, isLoading, isError } = useProfile()
-  const [activeTab, setActiveTab] = useState<string>(TABS[0].id)
+  const [searchParams] = useSearchParams()
+  const requestedTab = searchParams.get('tab')
+  const [activeTab, setActiveTab] = useState<string>(
+    TABS.some(tab => tab.id === requestedTab) ? (requestedTab as string) : TABS[0].id,
+  )
 
   if (isLoading) return <div className="text-slate-500">불러오는 중...</div>
   if (isError || !profile) return <div className="text-red-500 p-4">프로필을 불러오지 못했습니다.</div>
@@ -56,6 +64,8 @@ export default function MyPage() {
         <div className="min-w-0">
           {activeSection ? (
             <ProfileSection key={activeSection.id} section={activeSection} profile={profile} />
+          ) : activeTab === NICKNAME_TAB ? (
+            <NicknameSection />
           ) : (
             <FileListCard files={profile.files} />
           )}
