@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Pencil } from 'lucide-react'
 import { usePosts } from '@/hooks/usePosts'
@@ -18,6 +19,12 @@ export default function Board() {
   const { data, isLoading, isError } = usePosts(page - 1)
 
   const pageCount = data ? totalPages(data.totalCount, data.pageSize) : 1
+  // 서버는 범위를 벗어난 페이지에 posts=[]와 totalCount>0을 준다. 마지막 페이지로 옮긴다.
+  const outOfRange = !!data && data.posts.length === 0 && data.totalCount > 0 && page > pageCount
+
+  useEffect(() => {
+    if (outOfRange) setSearchParams(pageCount === 1 ? {} : { page: String(pageCount) }, { replace: true })
+  }, [outOfRange, pageCount, setSearchParams])
 
   return (
     <div className="space-y-6 font-sans">
@@ -31,7 +38,7 @@ export default function Board() {
         </Button>
       </header>
 
-      {isLoading ? (
+      {isLoading || outOfRange ? (
         <p className="text-slate-500">불러오는 중...</p>
       ) : isError || !data ? (
         <p role="alert" className="p-4 text-danger">글 목록을 불러오지 못했습니다.</p>

@@ -78,4 +78,17 @@ describe('Board', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent('글 목록을 불러오지 못했습니다.')
   })
+
+  it('범위를 벗어난 page는 마지막 페이지로 옮기고 빈 상태를 보이지 않는다', () => {
+    // 서버처럼 마지막 페이지(0부터 2)를 넘으면 빈 목록을 돌려준다.
+    usePosts.mockImplementation((p: number) => ({
+      data: p > 2 ? page({ posts: [], totalCount: 45 }) : page({ totalCount: 45 }),
+      isLoading: false,
+      isError: false,
+    }))
+    renderBoard('/board?page=99')
+
+    expect(screen.queryByText('아직 글이 없어요. 첫 글을 남겨보세요.')).not.toBeInTheDocument()
+    expect(usePosts).toHaveBeenLastCalledWith(2)
+  })
 })
