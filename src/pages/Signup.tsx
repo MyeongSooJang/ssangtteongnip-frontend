@@ -7,6 +7,7 @@ import EmailVerificationField from '@/components/auth/EmailVerificationField'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { validateNickname } from '@/lib/nickname'
 import { getErrorCode, getErrorMessage } from '@/lib/errors'
 
 const MIN_PASSWORD_LENGTH = 8
@@ -15,7 +16,7 @@ export default function Signup() {
   const { mutate: signup, isPending, error } = useSignup()
   const { login: saveToken } = useAuth()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ email: '', name: '', password: '', passwordConfirm: '' })
+  const [form, setForm] = useState({ email: '', name: '', nickname: '', password: '', passwordConfirm: '' })
   const [emailVerified, setEmailVerified] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
@@ -23,6 +24,11 @@ export default function Signup() {
     e.preventDefault()
     if (!emailVerified) {
       setFormError('이메일 인증을 완료해주세요.')
+      return
+    }
+    const nicknameProblem = validateNickname(form.nickname)
+    if (nicknameProblem) {
+      setFormError(nicknameProblem)
       return
     }
     if (form.password.length < MIN_PASSWORD_LENGTH) {
@@ -35,7 +41,7 @@ export default function Signup() {
     }
     setFormError(null)
     signup(
-      { email: form.email, name: form.name, password: form.password },
+      { email: form.email, name: form.name, nickname: form.nickname.trim(), password: form.password },
       {
         onSuccess: ({ accessToken }) => {
           saveToken(accessToken)
@@ -76,6 +82,18 @@ export default function Signup() {
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                 required
               />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="nickname" className="text-ink-900">닉네임</Label>
+              <Input
+                id="nickname"
+                autoComplete="nickname"
+                placeholder="한글, 영문, 숫자 2~10자"
+                value={form.nickname}
+                onChange={e => setForm(f => ({ ...f, nickname: e.target.value }))}
+                required
+              />
+              <p className="text-xs text-slate-500">게시판에서 이름 대신 보이는 이름입니다.</p>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="password" className="text-ink-900">비밀번호</Label>

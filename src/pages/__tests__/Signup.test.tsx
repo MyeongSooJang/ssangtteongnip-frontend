@@ -48,8 +48,9 @@ async function verifyEmail(user: User) {
   await user.click(screen.getByRole('button', { name: '확인' }))
 }
 
-async function fillRest(user: User, password: string, confirm: string) {
+async function fillRest(user: User, password: string, confirm: string, nickname = '취준생1') {
   await user.type(screen.getByLabelText('이름'), '홍길동')
+  await user.type(screen.getByLabelText('닉네임'), nickname)
   await user.type(screen.getByLabelText('비밀번호', { exact: true }), password)
   await user.type(screen.getByLabelText('비밀번호 확인'), confirm)
   await user.click(screen.getByRole('button', { name: '회원가입' }))
@@ -65,6 +66,7 @@ describe('Signup', () => {
     renderSignup()
 
     expect(screen.queryByLabelText('이름')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('닉네임')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('비밀번호', { exact: true })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '회원가입' })).toBeDisabled()
   })
@@ -161,8 +163,32 @@ describe('Signup', () => {
     await fillRest(user, 'password1', 'password1')
 
     expect(signupMutate).toHaveBeenCalledWith(
-      { email: 'hong@example.com', name: '홍길동', password: 'password1' },
+      { email: 'hong@example.com', name: '홍길동', nickname: '취준생1', password: 'password1' },
       expect.any(Object),
+    )
+  })
+
+  it('닉네임 규칙에 맞지 않으면 가입을 요청하지 않고 안내한다', async () => {
+    const user = userEvent.setup()
+    renderSignup()
+    await verifyEmail(user)
+
+    await fillRest(user, 'password1', 'password1', '취 준생!')
+
+    expect(screen.getByRole('alert')).toHaveTextContent('닉네임은 한글, 영문, 숫자 2~10자로 입력해주세요.')
+    expect(signupMutate).not.toHaveBeenCalled()
+  })
+
+  it('닉네임 앞뒤 공백은 지우고 가입을 요청한다', async () => {
+    const user = userEvent.setup()
+    renderSignup()
+    await verifyEmail(user)
+
+    await fillRest(user, 'password1', 'password1', '  취준생1  ')
+
+    expect(signupMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ nickname: '취준생1' }),
+      expect.anything(),
     )
   })
 

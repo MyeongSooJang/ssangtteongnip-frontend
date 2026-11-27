@@ -181,6 +181,7 @@ export interface CreateScheduleRequest {
 export interface SignupRequest {
   email: string
   name: string
+  nickname: string
   password: string
 }
 

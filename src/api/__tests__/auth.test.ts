@@ -10,7 +10,7 @@ describe('auth API', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('signup: POST /api/auth/signup을 호출한다', async () => {
-    const req = { email: 'hong@example.com', name: '홍길동', password: 'password1' }
+    const req = { email: 'hong@example.com', name: '홍길동', nickname: '취준생1', password: 'password1' }
     vi.mocked(apiClient.post).mockResolvedValue({ data: { success: true, data: { accessToken: 'jwt' } } })
 
     const result = await signup(req)
