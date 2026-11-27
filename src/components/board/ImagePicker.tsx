@@ -29,14 +29,14 @@ function fileKey(file: File): number {
 }
 
 // 파일 하나의 미리보기 주소. 개발 모드에서 효과가 두 번 실행돼도 주소가 깨지지 않도록 효과 안에서 만들고 정리한다.
-function AddedThumbnail({ file, alt, number, onRemove, onInsert }: ThumbnailActions & { file: File; alt: string }) {
+function AddedThumbnail({ file, number, onRemove, onInsert }: ThumbnailActions & { file: File }) {
   const [src, setSrc] = useState<string>()
   useEffect(() => {
     const url = URL.createObjectURL(file)
     setSrc(url)
     return () => URL.revokeObjectURL(url)
   }, [file])
-  return <Thumbnail src={src} alt={alt} number={number} onRemove={onRemove} onInsert={onInsert} />
+  return <Thumbnail src={src} number={number} onRemove={onRemove} onInsert={onInsert} />
 }
 
 interface ThumbnailActions {
@@ -45,11 +45,11 @@ interface ThumbnailActions {
   onInsert: () => void
 }
 
-function Thumbnail({ src, alt, number, onRemove, onInsert }: ThumbnailActions & { src?: string; alt: string }) {
+function Thumbnail({ src, number, onRemove, onInsert }: ThumbnailActions & { src?: string }) {
   return (
     <li className="w-24 space-y-1.5">
       <div className="relative h-24 w-24 overflow-hidden rounded-lg border border-line bg-surface">
-        {src && <img src={src} alt={alt} className="h-full w-full object-cover" />}
+        {src && <img src={src} alt={`이미지 ${number}`} className="h-full w-full object-cover" />}
         <span aria-hidden className="absolute bottom-1 left-1 rounded bg-ink-900/70 px-1.5 text-xs font-medium tabular-nums text-white">{number}</span>
         <button
           type="button"
@@ -93,17 +93,17 @@ export default function ImagePicker({ existing, added, max, onAdd, onRemoveExist
         />
       </div>
       {count > 0 && (
-        <p className="text-xs text-ink-600">본문에서 넣고 싶은 위치에 커서를 두고 '본문에 넣기'를 누르세요. 넣지 않은 이미지는 글 맨 아래에 나옵니다.</p>
-      )}
-      {count > 0 && (
-        <ul className="flex flex-wrap gap-3">
-          {existing.map((image, i) => (
-            <Thumbnail key={image.id} src={toDisplayUrl(image.url)} alt={`기존 이미지 ${i + 1}`} number={i + 1} onRemove={() => onRemoveExisting(image.id)} onInsert={() => onInsert(i + 1)} />
-          ))}
-          {added.map((file, i) => (
-            <AddedThumbnail key={fileKey(file)} file={file} alt={`새 이미지 ${i + 1}`} number={existing.length + i + 1} onRemove={() => onRemoveAdded(i)} onInsert={() => onInsert(existing.length + i + 1)} />
-          ))}
-        </ul>
+        <>
+          <p className="text-xs text-ink-600">본문에서 넣고 싶은 위치에 커서를 두고 '본문에 넣기'를 누르세요. 넣지 않은 이미지는 글 맨 아래에 나옵니다.</p>
+          <ul className="flex flex-wrap gap-3">
+            {existing.map((image, i) => (
+              <Thumbnail key={image.id} src={toDisplayUrl(image.url)} number={i + 1} onRemove={() => onRemoveExisting(image.id)} onInsert={() => onInsert(i + 1)} />
+            ))}
+            {added.map((file, i) => (
+              <AddedThumbnail key={fileKey(file)} file={file} number={existing.length + i + 1} onRemove={() => onRemoveAdded(i)} onInsert={() => onInsert(existing.length + i + 1)} />
+            ))}
+          </ul>
+        </>
       )}
     </div>
   )

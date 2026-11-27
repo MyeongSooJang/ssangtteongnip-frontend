@@ -50,9 +50,13 @@ export default function PostForm({
     textarea.setSelectionRange(caret, caret)
   }, [content])
 
-  // 커서 위치(없으면 맨 끝)에 [이미지 N] 표시를 넣는다.
+  // 사용자가 내용 칸에 커서를 둔 적이 있는지. 브라우저는 포커스 전에도 selectionStart를 0으로 돌려줘서(수정 화면이면 맨 앞이 된다) 이것으로 구분한다.
+  const caretPlaced = useRef(false)
+  const markCaret = () => { caretPlaced.current = true }
+
+  // 커서 위치에 [이미지 N] 표시를 넣는다. 커서를 둔 적이 없으면 맨 끝에 넣는다.
   const insertImage = (n: number) => {
-    const cursor = contentRef.current?.selectionStart ?? content.length
+    const cursor = caretPlaced.current ? contentRef.current?.selectionStart ?? content.length : content.length
     const next = insertImageMarker(content, cursor, n)
     pendingCaret.current = next.cursor
     setContent(next.content)
@@ -105,7 +109,7 @@ export default function PostForm({
 
       <div className="space-y-1.5">
         <Label htmlFor="post-content" className="text-ink-900">내용</Label>
-        <Textarea ref={contentRef} id="post-content" rows={12} value={content} onChange={e => { setContent(e.target.value); setFormError(null) }} />
+        <Textarea ref={contentRef} id="post-content" rows={12} value={content} onFocus={markCaret} onSelect={markCaret} onClick={markCaret} onKeyUp={markCaret}onChange={e => { setContent(e.target.value); setFormError(null) }} />
         <p className="text-right text-xs text-ink-600">{content.length} / {POST_CONTENT_MAX}</p>
       </div>
 

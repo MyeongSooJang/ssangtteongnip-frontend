@@ -92,9 +92,9 @@ describe('splitPostBody', () => {
   it('범위 안의 표시는 이미지 자리가 된다', () => {
     expect(splitPostBody('앞\n[이미지 2]\n뒤', 2)).toEqual({
       parts: [
-        { type: 'text', text: '앞\n' },
+        { type: 'text', text: '앞' },
         { type: 'image', index: 1 },
-        { type: 'text', text: '\n뒤' },
+        { type: 'text', text: '뒤' },
       ],
       unreferenced: [0],
     })
@@ -111,6 +111,34 @@ describe('splitPostBody', () => {
     const { parts, unreferenced } = splitPostBody('[이미지 1][이미지 1]', 1)
     expect(parts).toEqual([{ type: 'image', index: 0 }, { type: 'image', index: 0 }])
     expect(unreferenced).toEqual([])
+  })
+
+  it('표시 앞뒤의 빈 줄은 모두 걷어낸다', () => {
+    expect(splitPostBody('앞\n\n\n[이미지 1]\n\n뒤\n', 1).parts).toEqual([
+      { type: 'text', text: '앞' },
+      { type: 'image', index: 0 },
+      { type: 'text', text: '뒤\n' },
+    ])
+  })
+
+  it('붙어 있는 표시 사이의 줄바꿈은 글 조각이 되지 않는다', () => {
+    expect(splitPostBody('[이미지 1]\n[이미지 2]\n\n[이미지 3]', 3).parts).toEqual([
+      { type: 'image', index: 0 },
+      { type: 'image', index: 1 },
+      { type: 'image', index: 2 },
+    ])
+  })
+
+  it('맨 앞과 맨 끝의 표시 옆 줄바꿈도 걷어낸다', () => {
+    expect(splitPostBody('[이미지 1]\n글\n[이미지 2]', 2).parts).toEqual([
+      { type: 'image', index: 0 },
+      { type: 'text', text: '글' },
+      { type: 'image', index: 1 },
+    ])
+  })
+
+  it('글 안쪽의 빈 줄은 그대로 둔다', () => {
+    expect(splitPostBody('첫 줄\n\n둘째 줄\n[이미지 1]\n끝', 1).parts[0]).toEqual({ type: 'text', text: '첫 줄\n\n둘째 줄' })
   })
 
   it('빈 글 조각은 만들지 않는다', () => {

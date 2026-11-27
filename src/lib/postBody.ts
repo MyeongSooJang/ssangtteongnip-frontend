@@ -9,7 +9,8 @@ export function formatImageMarker(n: number): string {
 
 // 번호는 1~9만 다룬다(글당 이미지는 5장). 앞자리가 0이거나 두 자리인 표시는 그냥 글자로 남는다.
 const MARKER = /\[이미지 ([1-9])\]/g
-const BODY_MARKER = /\[이미지 ([1-9]\d*)\]/g
+// 보여줄 때는 범위 판단을 위해 두 자리 이상도 한 번호로 읽고(범위 밖이면 글자로 남김), 지울 때는 1~9만 다룬다.
+const BODY_MARKER =/\[이미지 ([1-9]\d*)\]/g
 
 // 표시가 자기 줄을 차지하도록 커서 위치에 넣는다. 커서는 표시(와 덧붙인 줄바꿈) 바로 뒤로 옮겨, 이어서 다음 줄에 쓸 수 있게 한다.
 export function insertImageMarker(content: string, cursor: number, n: number): { content: string; cursor: number } {
@@ -48,11 +49,11 @@ export function removeImageMarker(content: string, n: number): string {
 
 // 상세 화면용. 범위 안의 표시만 이미지 자리가 되고, 범위 밖 표시는 글자로 남는다.
 export function splitPostBody(content: string, imageCount: number): { parts: BodyPart[]; unreferenced: number[] } {
-  const parts: BodyPart[] = []
+  const raw: BodyPart[] = []
   const referenced = new Set<number>()
   let text = ''
   const flush = () => {
-    if (text) parts.push({ type: 'text', text })
+    if (text) raw.push({ type: 'text', text })
     text = ''
   }
   let pos = 0
@@ -62,11 +63,23 @@ export function splitPostBody(content: string, imageCount: number): { parts: Bod
     text += content.slice(pos, match.index)
     pos = match.index + match[0].length
     flush()
-    parts.push({ type: 'image', index: num - 1 })
+    raw.push({ type: 'image', index: num - 1 })
     referenced.add(num - 1)
   }
   text += content.slice(pos)
   flush()
+  // 이미지 블록이 자기 위아래 간격을 갖고 있으므로, 표시 옆에 남은 줄바꿈(넣을 때 붙인 것과 사용자가 친 빈 줄)은 걷어낸다.
+  const parts: BodyPart[] = []
+  raw.forEach((part, i) => {
+    if (part.type === 'image') {
+      parts.push(part)
+      return
+    }
+    let t = part.text
+    if (raw[i - 1]?.type === 'image') t = t.replace(/^\n+/, '')
+    if (raw[i + 1]?.type === 'image') t = t.replace(/\n+$/, '')
+    if (t) parts.push({ type: 'text', text: t })
+  })
   const unreferenced = Array.from({ length: imageCount }, (_, i) => i).filter(i => !referenced.has(i))
   return { parts, unreferenced }
 }

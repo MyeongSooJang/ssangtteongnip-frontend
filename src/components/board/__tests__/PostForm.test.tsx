@@ -68,7 +68,7 @@ describe('PostForm', () => {
     expect(URL.createObjectURL).toHaveBeenCalledTimes(2)
     expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1)
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:preview-1')
-    expect(screen.getByRole('img', { name: '새 이미지 1' })).toHaveAttribute('src', 'blob:preview-2')
+    expect(screen.getByRole('img', { name: '이미지 1' })).toHaveAttribute('src', 'blob:preview-2')
   })
 
   it('글자 수를 보여준다', async () => {
@@ -162,6 +162,15 @@ describe('PostForm', () => {
       expect(screen.getByText('11 / 5000')).toBeInTheDocument()
       expect(content()).toHaveFocus()
       expect(content().selectionStart).toBe(content().value.indexOf('뒤'))
+    })
+
+    it('커서를 둔 적이 없으면 내용 맨 끝에 한 줄로 넣는다', async () => {
+      const user = userEvent.setup()
+      renderForm({ initialContent: '기존 내용', initialImages: [{ id: 'img-1', url: '/api/post-images/img-1' }] })
+
+      await user.click(screen.getByRole('button', { name: '이미지 1 본문에 넣기' }))
+
+      expect(content().value).toBe('기존 내용\n[이미지 1]')
     })
 
     it('이미지가 있으면 사용법 안내를 보여준다', async () => {
