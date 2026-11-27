@@ -26,6 +26,12 @@ describe('toDisplayUrl', () => {
     expect(toDisplayUrl('/api/images/abc')).toBe('https://api.example.com/api/images/abc')
   })
 
+  it('게시글 이미지 경로에도 API 주소를 붙인다', () => {
+    apiClient.defaults.baseURL = 'https://api.example.com/'
+
+    expect(toDisplayUrl('/api/post-images/abc')).toBe('https://api.example.com/api/post-images/abc')
+  })
+
   it('외부 링크나 다른 경로는 그대로 둔다', () => {
     expect(toDisplayUrl('https://cdn.example.com/a.png')).toBe('https://cdn.example.com/a.png')
     expect(toDisplayUrl('/api/me/images')).toBe('/api/me/images')
