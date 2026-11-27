@@ -42,6 +42,8 @@ export default function Board() {
         <p className="text-slate-500">불러오는 중...</p>
       ) : isError || !data ? (
         <p role="alert" className="p-4 text-danger">글 목록을 불러오지 못했습니다.</p>
+      ) : data.posts.length === 0 && data.totalCount > 0 ? (
+        <p className="text-slate-500">불러오는 중...</p>
       ) : data.posts.length === 0 ? (
         <p className="rounded-xl border border-line bg-white p-10 text-center text-slate-500">아직 글이 없어요. 첫 글을 남겨보세요.</p>
       ) : (

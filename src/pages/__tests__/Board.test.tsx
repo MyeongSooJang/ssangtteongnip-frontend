@@ -91,4 +91,23 @@ describe('Board', () => {
     expect(screen.queryByText('아직 글이 없어요. 첫 글을 남겨보세요.')).not.toBeInTheDocument()
     expect(usePosts).toHaveBeenLastCalledWith(2)
   })
+
+  it('이동 중 남은 이전 빈 페이지(placeholder)에는 빈 상태 대신 불러오는 중을 보여준다', () => {
+    usePosts.mockReturnValue({ data: page({ posts: [], totalCount: 45 }), isLoading: false, isError: false, isPlaceholderData: true })
+    renderBoard('/board?page=3')
+
+    expect(screen.queryByText('아직 글이 없어요. 첫 글을 남겨보세요.')).not.toBeInTheDocument()
+    expect(screen.getByText('불러오는 중...')).toBeInTheDocument()
+  })
+
+  it('범위를 벗어났고 마지막 페이지가 1페이지면 0페이지를 요청한다', () => {
+    usePosts.mockImplementation((p: number) => ({
+      data: p > 0 ? page({ posts: [], totalCount: 5 }) : page({ totalCount: 5 }),
+      isLoading: false,
+      isError: false,
+    }))
+    renderBoard('/board?page=2')
+
+    expect(usePosts).toHaveBeenLastCalledWith(0)
+  })
 })
