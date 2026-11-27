@@ -54,7 +54,7 @@ export default function BoardDetail() {
 
       <PostGallery images={post.images} />
 
-      <Dialog open={confirming} onOpenChange={open => !open && closeConfirm()}>
+      <Dialog open={confirming} onOpenChange={open => !open && !deleting && closeConfirm()}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>글을 삭제할까요?</DialogTitle>

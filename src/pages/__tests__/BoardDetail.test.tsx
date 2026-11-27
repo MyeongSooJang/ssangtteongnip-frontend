@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { AxiosError, type AxiosResponse } from 'axios'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Post } from '@/api/types'
@@ -8,10 +9,11 @@ import BoardDetail from '../BoardDetail'
 const deleteMutate = vi.fn()
 const usePost = vi.fn()
 let deleteError: unknown = null
+let deletePending = false
 
 vi.mock('@/hooks/usePosts', () => ({
   usePost: (id: number) => usePost(id),
-  useDeletePost: () => ({ mutate: deleteMutate, isPending: false, error: deleteError, reset: vi.fn() }),
+  useDeletePost: () => ({ mutate: deleteMutate, isPending: deletePending, error: deleteError, reset: vi.fn() }),
 }))
 
 const post: Post = {
@@ -35,6 +37,7 @@ describe('BoardDetail', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     deleteError = null
+    deletePending = false
     usePost.mockReturnValue({ data: post, isLoading: false, isError: false, error: null })
   })
 
@@ -93,6 +96,40 @@ describe('BoardDetail', () => {
     await user.click(screen.getByRole('button', { name: '취소' }))
 
     expect(deleteMutate).not.toHaveBeenCalled()
+  })
+
+  it('삭제 실패 시 서버 메시지를 확인창에 보여준다', async () => {
+    const user = userEvent.setup()
+    deleteError = new AxiosError('forbidden', '403', undefined, undefined, {
+      status: 403, data: { success: false, code: 'POST_FORBIDDEN', message: '작성자만 수정하거나 삭제할 수 있습니다.' },
+    } as AxiosResponse)
+    renderDetail()
+
+    await user.click(screen.getByRole('button', { name: '삭제' }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent('작성자만 수정하거나 삭제할 수 있습니다.')
+  })
+
+  it('삭제 중에는 확인창의 버튼을 막는다', async () => {
+    const user = userEvent.setup()
+    deletePending = true
+    renderDetail()
+
+    await user.click(screen.getByRole('button', { name: '삭제' }))
+
+    expect(screen.getByRole('button', { name: '삭제 중...' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '취소' })).toBeDisabled()
+  })
+
+  it('삭제 중에는 Esc로 확인창을 닫지 못한다', async () => {
+    const user = userEvent.setup()
+    deletePending = true
+    renderDetail()
+    await user.click(screen.getByRole('button', { name: '삭제' }))
+
+    await user.keyboard('{Escape}')
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
   it('불러오는 중에는 안내를 보여준다', () => {

@@ -43,6 +43,34 @@ describe('PostForm', () => {
     expect(onSubmit).not.toHaveBeenCalled()
   })
 
+  it('제목을 고치면 이전 검증 안내가 사라진다', async () => {
+    const user = userEvent.setup()
+    renderForm()
+
+    await user.click(screen.getByRole('button', { name: '등록' }))
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    await user.type(screen.getByLabelText('제목'), '제목')
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('미리보기 주소는 파일마다 한 번만 만들고, 제거한 파일 것만 해제한다', async () => {
+    const user = userEvent.setup()
+    let n = 0
+    URL.createObjectURL = vi.fn(() => `blob:preview-${++n}`)
+    renderForm()
+
+    await user.upload(screen.getByLabelText('이미지 파일 선택'), [png('a.png'), png('b.png')])
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(2)
+
+    await user.click(screen.getAllByRole('button', { name: '이미지 제거' })[0])
+
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(2)
+    expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1)
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:preview-1')
+    expect(screen.getByRole('img', { name: '새 이미지 1' })).toHaveAttribute('src', 'blob:preview-2')
+  })
+
   it('글자 수를 보여준다', async () => {
     const user = userEvent.setup()
     renderForm()

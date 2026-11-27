@@ -63,12 +63,12 @@ export default function PostForm({
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="space-y-1.5">
         <Label htmlFor="post-title" className="text-ink-900">제목</Label>
-        <Input id="post-title" value={title} onChange={e => setTitle(e.target.value)} maxLength={POST_TITLE_MAX} />
+        <Input id="post-title" value={title} onChange={e => { setTitle(e.target.value); setFormError(null) }} maxLength={POST_TITLE_MAX} />
       </div>
 
       <div className="space-y-1.5">
         <Label htmlFor="post-content" className="text-ink-900">내용</Label>
-        <Textarea id="post-content" rows={12} value={content} onChange={e => setContent(e.target.value)} />
+        <Textarea id="post-content" rows={12} value={content} onChange={e => { setContent(e.target.value); setFormError(null) }} />
         <p className="text-right text-xs text-slate-500">{content.length} / {POST_CONTENT_MAX}</p>
       </div>
 

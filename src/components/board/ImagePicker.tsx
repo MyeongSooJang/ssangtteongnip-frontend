@@ -14,15 +14,27 @@ interface ImagePickerProps {
   onRemoveAdded: (index: number) => void
 }
 
-// 고른 파일의 미리보기 주소. 개발 모드에서 효과가 두 번 실행돼도 주소가 깨지지 않도록 효과 안에서 만들고 정리한다.
-function useObjectUrls(files: File[]): string[] {
-  const [urls, setUrls] = useState<string[]>([])
+// File마다 바뀌지 않는 key. 배열 위치를 key로 쓰면 하나를 지울 때 나머지의 미리보기 주소가 다시 만들어진다.
+const fileIds = new WeakMap<File, number>()
+let nextFileId = 0
+function fileKey(file: File): number {
+  let id = fileIds.get(file)
+  if (id === undefined) {
+    id = nextFileId++
+    fileIds.set(file, id)
+  }
+  return id
+}
+
+// 파일 하나의 미리보기 주소. 개발 모드에서 효과가 두 번 실행돼도 주소가 깨지지 않도록 효과 안에서 만들고 정리한다.
+function AddedThumbnail({ file, alt, onRemove }: { file: File; alt: string; onRemove: () => void }) {
+  const [src, setSrc] = useState<string>()
   useEffect(() => {
-    const next = files.map(file => URL.createObjectURL(file))
-    setUrls(next)
-    return () => next.forEach(url => URL.revokeObjectURL(url))
-  }, [files])
-  return urls
+    const url = URL.createObjectURL(file)
+    setSrc(url)
+    return () => URL.revokeObjectURL(url)
+  }, [file])
+  return <Thumbnail src={src} alt={alt} onRemove={onRemove} />
 }
 
 function Thumbnail({ src, alt, onRemove }: { src?: string; alt: string; onRemove: () => void }) {
@@ -43,7 +55,6 @@ function Thumbnail({ src, alt, onRemove }: { src?: string; alt: string; onRemove
 
 export default function ImagePicker({ existing, added, max, onAdd, onRemoveExisting, onRemoveAdded }: ImagePickerProps) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const addedUrls = useObjectUrls(added)
   const count = existing.length + added.length
 
   return (
@@ -73,7 +84,7 @@ export default function ImagePicker({ existing, added, max, onAdd, onRemoveExist
             <Thumbnail key={image.id} src={toDisplayUrl(image.url)} alt={`기존 이미지 ${i + 1}`} onRemove={() => onRemoveExisting(image.id)} />
           ))}
           {added.map((file, i) => (
-            <Thumbnail key={`${file.name}-${i}`} src={addedUrls[i]} alt={`새 이미지 ${i + 1}`} onRemove={() => onRemoveAdded(i)} />
+            <AddedThumbnail key={fileKey(file)} file={file} alt={`새 이미지 ${i + 1}`} onRemove={() => onRemoveAdded(i)} />
           ))}
         </ul>
       )}
