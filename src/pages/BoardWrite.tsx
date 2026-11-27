@@ -11,7 +11,7 @@ function Frame({ title, children }: { title: string; children: React.ReactNode }
   return (
     <div className="mx-auto max-w-3xl space-y-6 font-sans">
       <div>
-        <Link to="/board" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-ink-900">
+        <Link to="/board" className="inline-flex items-center gap-1 text-sm text-ink-600 hover:text-ink-900">
           <ArrowLeft size={14} aria-hidden />게시판
         </Link>
         <h1 className="mt-2 text-xl font-bold text-ink-900">{title}</h1>
@@ -26,7 +26,7 @@ function CreatePost() {
   const { data, isLoading, isError } = useNickname()
   const { mutate, isPending, error } = useCreatePost()
 
-  if (isLoading) return <p className="text-slate-500">불러오는 중...</p>
+  if (isLoading) return <p className="text-ink-600">불러오는 중...</p>
   if (isError || !data) return <p role="alert" className="p-4 text-danger">닉네임 정보를 불러오지 못했습니다.</p>
 
   return (
@@ -56,7 +56,7 @@ function EditPost({ postId }: { postId: number }) {
   const { data: post, isLoading, isError, error: loadError } = usePost(postId)
   const { mutate, isPending, error } = useRewritePost()
 
-  if (isLoading) return <p className="text-slate-500">불러오는 중...</p>
+  if (isLoading) return <p className="text-ink-600">불러오는 중...</p>
   if (isError || !post) return <PostLoadError error={loadError} />
   if (!post.mine) {
     return (

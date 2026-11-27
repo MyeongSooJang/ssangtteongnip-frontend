@@ -93,7 +93,7 @@ export default function Signup() {
                 onChange={e => setForm(f => ({ ...f, nickname: e.target.value }))}
                 required
               />
-              <p className="text-xs text-slate-500">게시판에서 이름 대신 보이는 이름입니다.</p>
+              <p className="text-xs text-ink-600">게시판에서 이름 대신 보이는 이름입니다.</p>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="password" className="text-ink-900">비밀번호</Label>

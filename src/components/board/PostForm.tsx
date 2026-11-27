@@ -69,7 +69,7 @@ export default function PostForm({
       <div className="space-y-1.5">
         <Label htmlFor="post-content" className="text-ink-900">내용</Label>
         <Textarea id="post-content" rows={12} value={content} onChange={e => { setContent(e.target.value); setFormError(null) }} />
-        <p className="text-right text-xs text-slate-500">{content.length} / {POST_CONTENT_MAX}</p>
+        <p className="text-right text-xs text-ink-600">{content.length} / {POST_CONTENT_MAX}</p>
       </div>
 
       <ImagePicker

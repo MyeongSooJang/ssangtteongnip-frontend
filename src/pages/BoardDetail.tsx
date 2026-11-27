@@ -16,7 +16,7 @@ export default function BoardDetail() {
   const { mutate: remove, isPending: deleting, error: deleteError, reset } = useDeletePost()
   const [confirming, setConfirming] = useState(false)
 
-  if (isLoading) return <p className="text-slate-500">불러오는 중...</p>
+  if (isLoading) return <p className="text-ink-600">불러오는 중...</p>
   if (isError || !post) return <PostLoadError error={error} />
 
   const closeConfirm = () => {
@@ -26,14 +26,14 @@ export default function BoardDetail() {
 
   return (
     <article className="mx-auto max-w-3xl space-y-6 font-sans">
-      <Link to="/board" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-ink-900">
+      <Link to="/board" className="inline-flex items-center gap-1 text-sm text-ink-600 hover:text-ink-900">
         <ArrowLeft size={14} aria-hidden />게시판
       </Link>
 
       <header className="space-y-3 border-b border-line pb-5">
         <h1 className="break-words text-2xl font-bold text-ink-900">{post.title}</h1>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="flex items-center gap-3 text-sm text-slate-500">
+          <p className="flex items-center gap-3 text-sm text-ink-600">
             <span className="font-medium text-ink-600">{post.nickname}</span>
             <time dateTime={post.createdAt}>{formatPostDateTime(post.createdAt)}</time>
           </p>

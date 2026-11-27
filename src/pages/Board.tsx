@@ -31,7 +31,7 @@ export default function Board() {
       <header className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-ink-900">게시판</h1>
-          <p className="mt-1 text-sm text-slate-500">취준생끼리 정보와 후기를 나누는 곳입니다.</p>
+          <p className="mt-1 text-sm text-ink-600">취준생끼리 정보와 후기를 나누는 곳입니다.</p>
         </div>
         <Button asChild variant="brand">
           <Link to="/board/new"><Pencil aria-hidden />글쓰기</Link>
@@ -39,13 +39,13 @@ export default function Board() {
       </header>
 
       {isLoading || outOfRange ? (
-        <p className="text-slate-500">불러오는 중...</p>
+        <p className="text-ink-600">불러오는 중...</p>
       ) : isError || !data ? (
         <p role="alert" className="p-4 text-danger">글 목록을 불러오지 못했습니다.</p>
       ) : data.posts.length === 0 && data.totalCount > 0 ? (
-        <p className="text-slate-500">불러오는 중...</p>
+        <p className="text-ink-600">불러오는 중...</p>
       ) : data.posts.length === 0 ? (
-        <p className="rounded-xl border border-line bg-white p-10 text-center text-slate-500">아직 글이 없어요. 첫 글을 남겨보세요.</p>
+        <p className="rounded-xl border border-line bg-white p-10 text-center text-ink-600">아직 글이 없어요. 첫 글을 남겨보세요.</p>
       ) : (
         <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-white">
           {data.posts.map(post => <PostRow key={post.id} post={post} />)}

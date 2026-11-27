@@ -45,7 +45,7 @@ function Thumbnail({ src, alt, onRemove }: { src?: string; alt: string; onRemove
         type="button"
         aria-label="이미지 제거"
         onClick={onRemove}
-        className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-ink-900/70 text-white transition-colors hover:bg-ink-900"
+        className="absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-ink-900/70 text-white transition-colors hover:bg-ink-900"
       >
         <X size={14} aria-hidden />
       </button>
@@ -60,7 +60,7 @@ export default function ImagePicker({ existing, added, max, onAdd, onRemoveExist
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-ink-900">이미지 <span className="font-normal text-slate-500">{count} / {max}</span></span>
+        <span className="text-sm font-medium text-ink-900">이미지 <span className="font-normal text-ink-600">{count} / {max}</span></span>
         <Button type="button" variant="outline" size="sm" disabled={count >= max} onClick={() => inputRef.current?.click()}>
           <ImagePlus aria-hidden />이미지 추가
         </Button>

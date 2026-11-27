@@ -14,7 +14,7 @@ export default function NicknameSection() {
   const [draft, setDraft] = useState('')
   const [formError, setFormError] = useState<string | null>(null)
 
-  if (isLoading) return <div className="text-slate-500">불러오는 중...</div>
+  if (isLoading) return <div className="text-ink-600">불러오는 중...</div>
   if (isError || !data) return <p role="alert" className="p-4 text-danger">닉네임을 불러오지 못했습니다.</p>
 
   const nickname = data.nickname
@@ -48,7 +48,7 @@ export default function NicknameSection() {
   return (
     <section className="rounded-xl border border-line bg-white p-6">
       <h2 className="text-base font-semibold text-ink-900">닉네임</h2>
-      <p className="mt-1 text-sm text-slate-500">게시판에서 이름 대신 보이는 이름입니다. 한글, 영문, 숫자 2~10자로 정할 수 있습니다.</p>
+      <p className="mt-1 text-sm text-ink-600">게시판에서 이름 대신 보이는 이름입니다. 한글, 영문, 숫자 2~10자로 정할 수 있습니다.</p>
 
       {editing ? (
         <form onSubmit={handleSubmit} className="mt-5 space-y-3">
