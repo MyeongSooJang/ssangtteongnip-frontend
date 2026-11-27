@@ -4,7 +4,7 @@ import { ArrowLeft, Pencil, Trash2 } from 'lucide-react'
 import { useDeletePost, usePost } from '@/hooks/usePosts'
 import { formatPostDateTime } from '@/lib/post'
 import { getErrorMessage } from '@/lib/errors'
-import PostGallery from '@/components/board/PostGallery'
+import PostBody from '@/components/board/PostBody'
 import PostLoadError from '@/components/board/PostLoadError'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -50,9 +50,7 @@ export default function BoardDetail() {
         </div>
       </header>
 
-      <p className="whitespace-pre-wrap break-words leading-relaxed text-ink-900">{post.content}</p>
-
-      <PostGallery images={post.images} />
+      <PostBody content={post.content} images={post.images} />
 
       <Dialog open={confirming} onOpenChange={open => !open && !deleting && closeConfirm()}>
         <DialogContent>
