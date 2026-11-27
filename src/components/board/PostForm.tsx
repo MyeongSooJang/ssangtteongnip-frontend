@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import type { PostImage } from '@/api/types'
 import {
   POST_CONTENT_MAX, POST_IMAGE_MAX, POST_TITLE_MAX, validatePost, validatePostImage,
 } from '@/lib/post'
+import { insertImageMarker, removeImageMarker } from '@/lib/postBody'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -36,6 +37,42 @@ export default function PostForm({
   const [added, setAdded] = useState<File[]>([])
   const [formError, setFormError] = useState<string | null>(null)
   const [imageError, setImageError] = useState<string | null>(null)
+  const contentRef = useRef<HTMLTextAreaElement>(null)
+  // 표시를 넣은 뒤 커서를 둘 위치. 글이 다시 그려진 다음에야 값이 바뀌어 있으므로 레이아웃 효과에서 옮긴다.
+  const pendingCaret = useRef<number | null>(null)
+
+  useLayoutEffect(() => {
+    const caret = pendingCaret.current
+    const textarea = contentRef.current
+    if (caret === null || !textarea) return
+    pendingCaret.current = null
+    textarea.focus()
+    textarea.setSelectionRange(caret, caret)
+  }, [content])
+
+  // 커서 위치(없으면 맨 끝)에 [이미지 N] 표시를 넣는다.
+  const insertImage = (n: number) => {
+    const cursor = contentRef.current?.selectionStart ?? content.length
+    const next = insertImageMarker(content, cursor, n)
+    pendingCaret.current = next.cursor
+    setContent(next.content)
+    setFormError(null)
+  }
+
+  // 이미지를 빼면 본문의 표시도 함께 지우고 뒤 번호를 당겨, 번호와 이미지가 어긋나지 않게 한다.
+  const removeExisting = (id: string) => {
+    const number = kept.findIndex(image => image.id === id) + 1
+    setKept(prev => prev.filter(image => image.id !== id))
+    if (number > 0) setContent(prev => removeImageMarker(prev, number))
+    setImageError(null)
+  }
+
+  const removeAdded = (index: number) => {
+    const number = kept.length + index + 1
+    setAdded(prev => prev.filter((_, i) => i !== index))
+    setContent(prev => removeImageMarker(prev, number))
+    setImageError(null)
+  }
 
   // 고른 파일 중 규칙에 맞는 것만, 남은 자리만큼 받는다. 거른 이유는 안내한다.
   const addImages = (selected: File[]) => {
@@ -68,7 +105,7 @@ export default function PostForm({
 
       <div className="space-y-1.5">
         <Label htmlFor="post-content" className="text-ink-900">내용</Label>
-        <Textarea id="post-content" rows={12} value={content} onChange={e => { setContent(e.target.value); setFormError(null) }} />
+        <Textarea ref={contentRef} id="post-content" rows={12} value={content} onChange={e => { setContent(e.target.value); setFormError(null) }} />
         <p className="text-right text-xs text-ink-600">{content.length} / {POST_CONTENT_MAX}</p>
       </div>
 
@@ -77,8 +114,9 @@ export default function PostForm({
         added={added}
         max={POST_IMAGE_MAX}
         onAdd={addImages}
-        onRemoveExisting={id => { setKept(prev => prev.filter(image => image.id !== id)); setImageError(null) }}
-        onRemoveAdded={index => { setAdded(prev => prev.filter((_, i) => i !== index)); setImageError(null) }}
+        onRemoveExisting={removeExisting}
+        onRemoveAdded={removeAdded}
+        onInsert={insertImage}
       />
 
       {message && <p role="alert" className="text-sm text-danger">{message}</p>}

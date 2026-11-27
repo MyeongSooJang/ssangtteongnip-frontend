@@ -12,6 +12,8 @@ interface ImagePickerProps {
   onAdd: (files: File[]) => void
   onRemoveExisting: (id: string) => void
   onRemoveAdded: (index: number) => void
+  // 본문 커서 위치에 [이미지 N] 표시를 넣는다. N은 기존 이미지 뒤에 새 이미지를 이어 붙인 목록에서의 1부터 센 순번이다.
+  onInsert: (n: number) => void
 }
 
 // File마다 바뀌지 않는 key. 배열 위치를 key로 쓰면 하나를 지울 때 나머지의 미리보기 주소가 다시 만들어진다.
@@ -27,33 +29,45 @@ function fileKey(file: File): number {
 }
 
 // 파일 하나의 미리보기 주소. 개발 모드에서 효과가 두 번 실행돼도 주소가 깨지지 않도록 효과 안에서 만들고 정리한다.
-function AddedThumbnail({ file, alt, onRemove }: { file: File; alt: string; onRemove: () => void }) {
+function AddedThumbnail({ file, alt, number, onRemove, onInsert }: ThumbnailActions & { file: File; alt: string }) {
   const [src, setSrc] = useState<string>()
   useEffect(() => {
     const url = URL.createObjectURL(file)
     setSrc(url)
     return () => URL.revokeObjectURL(url)
   }, [file])
-  return <Thumbnail src={src} alt={alt} onRemove={onRemove} />
+  return <Thumbnail src={src} alt={alt} number={number} onRemove={onRemove} onInsert={onInsert} />
 }
 
-function Thumbnail({ src, alt, onRemove }: { src?: string; alt: string; onRemove: () => void }) {
+interface ThumbnailActions {
+  number: number
+  onRemove: () => void
+  onInsert: () => void
+}
+
+function Thumbnail({ src, alt, number, onRemove, onInsert }: ThumbnailActions & { src?: string; alt: string }) {
   return (
-    <li className="relative h-24 w-24 overflow-hidden rounded-lg border border-line bg-surface">
-      {src && <img src={src} alt={alt} className="h-full w-full object-cover" />}
-      <button
-        type="button"
-        aria-label="이미지 제거"
-        onClick={onRemove}
-        className="absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-ink-900/70 text-white transition-colors hover:bg-ink-900"
-      >
-        <X size={14} aria-hidden />
-      </button>
+    <li className="w-24 space-y-1.5">
+      <div className="relative h-24 w-24 overflow-hidden rounded-lg border border-line bg-surface">
+        {src && <img src={src} alt={alt} className="h-full w-full object-cover" />}
+        <span aria-hidden className="absolute bottom-1 left-1 rounded bg-ink-900/70 px-1.5 text-xs font-medium tabular-nums text-white">{number}</span>
+        <button
+          type="button"
+          aria-label="이미지 제거"
+          onClick={onRemove}
+          className="absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-ink-900/70 text-white transition-colors hover:bg-ink-900"
+        >
+          <X size={14} aria-hidden />
+        </button>
+      </div>
+      <Button type="button" variant="outline" size="sm" aria-label={`이미지 ${number} 본문에 넣기`} onClick={onInsert} className="h-8 w-full px-0 text-xs">
+        본문에 넣기
+      </Button>
     </li>
   )
 }
 
-export default function ImagePicker({ existing, added, max, onAdd, onRemoveExisting, onRemoveAdded }: ImagePickerProps) {
+export default function ImagePicker({ existing, added, max, onAdd, onRemoveExisting, onRemoveAdded, onInsert }: ImagePickerProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const count = existing.length + added.length
 
@@ -79,12 +93,15 @@ export default function ImagePicker({ existing, added, max, onAdd, onRemoveExist
         />
       </div>
       {count > 0 && (
+        <p className="text-xs text-ink-600">본문에서 넣고 싶은 위치에 커서를 두고 '본문에 넣기'를 누르세요. 넣지 않은 이미지는 글 맨 아래에 나옵니다.</p>
+      )}
+      {count > 0 && (
         <ul className="flex flex-wrap gap-3">
           {existing.map((image, i) => (
-            <Thumbnail key={image.id} src={toDisplayUrl(image.url)} alt={`기존 이미지 ${i + 1}`} onRemove={() => onRemoveExisting(image.id)} />
+            <Thumbnail key={image.id} src={toDisplayUrl(image.url)} alt={`기존 이미지 ${i + 1}`} number={i + 1} onRemove={() => onRemoveExisting(image.id)} onInsert={() => onInsert(i + 1)} />
           ))}
           {added.map((file, i) => (
-            <AddedThumbnail key={fileKey(file)} file={file} alt={`새 이미지 ${i + 1}`} onRemove={() => onRemoveAdded(i)} />
+            <AddedThumbnail key={fileKey(file)} file={file} alt={`새 이미지 ${i + 1}`} number={existing.length + i + 1} onRemove={() => onRemoveAdded(i)} onInsert={() => onInsert(existing.length + i + 1)} />
           ))}
         </ul>
       )}

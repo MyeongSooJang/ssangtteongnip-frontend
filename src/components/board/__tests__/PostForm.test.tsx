@@ -146,4 +146,78 @@ describe('PostForm', () => {
 
     expect(onCancel).toHaveBeenCalled()
   })
+  describe('본문에 이미지 넣기', () => {
+    const content = () => screen.getByLabelText('내용') as HTMLTextAreaElement
+
+    it('커서 위치에 표시를 한 줄로 넣고 글자 수를 갱신한다', async () => {
+      const user = userEvent.setup()
+      renderForm()
+      await user.type(content(), '앞뒤')
+      content().setSelectionRange(1, 1)
+      await user.upload(screen.getByLabelText('이미지 파일 선택'), png())
+
+      await user.click(screen.getByRole('button', { name: '이미지 1 본문에 넣기' }))
+
+      expect(content().value).toBe('앞\n[이미지 1]\n뒤')
+      expect(screen.getByText('11 / 5000')).toBeInTheDocument()
+      expect(content()).toHaveFocus()
+      expect(content().selectionStart).toBe(content().value.indexOf('뒤'))
+    })
+
+    it('이미지가 있으면 사용법 안내를 보여준다', async () => {
+      const user = userEvent.setup()
+      renderForm()
+      expect(screen.queryByText(/본문에 넣기'를 누르세요/)).not.toBeInTheDocument()
+
+      await user.upload(screen.getByLabelText('이미지 파일 선택'), png())
+
+      expect(screen.getByText(/본문에 넣기'를 누르세요/)).toBeInTheDocument()
+    })
+
+    it('새 이미지를 지우면 그 표시를 없애고 뒤 번호를 당긴다', async () => {
+      const user = userEvent.setup()
+      renderForm({ initialContent: '[이미지 1]\n가운데\n[이미지 2]' })
+      await user.upload(screen.getByLabelText('이미지 파일 선택'), [png('a.png'), png('b.png')])
+
+      await user.click(screen.getAllByRole('button', { name: '이미지 제거' })[0])
+
+      expect(content().value).toBe('가운데\n[이미지 1]')
+    })
+
+    it('기존 이미지를 지워도 같은 규칙으로 표시를 고친다', async () => {
+      const user = userEvent.setup()
+      const images: PostImage[] = [
+        { id: 'img-1', url: '/api/post-images/img-1' },
+        { id: 'img-2', url: '/api/post-images/img-2' },
+        { id: 'img-3', url: '/api/post-images/img-3' },
+      ]
+      renderForm({ initialContent: '[이미지 1]\n[이미지 2]\n[이미지 3]', initialImages: images })
+
+      await user.click(screen.getAllByRole('button', { name: '이미지 제거' })[1])
+
+      expect(content().value).toBe('[이미지 1]\n[이미지 2]')
+    })
+
+    it('기존 이미지 뒤에 추가한 이미지는 이어지는 번호를 받는다', async () => {
+      const user = userEvent.setup()
+      renderForm({ initialImages: [{ id: 'img-1', url: '/api/post-images/img-1' }] })
+      await user.upload(screen.getByLabelText('이미지 파일 선택'), png())
+
+      await user.click(screen.getByRole('button', { name: '이미지 2 본문에 넣기' }))
+
+      expect(content().value).toBe('[이미지 2]')
+    })
+
+    it('제출 값 구조는 그대로이고 내용에 표시가 담긴다', async () => {
+      const user = userEvent.setup()
+      renderForm()
+      await user.type(screen.getByLabelText('제목'), '제목')
+      const a = png('a.png')
+      await user.upload(screen.getByLabelText('이미지 파일 선택'), a)
+      await user.click(screen.getByRole('button', { name: '이미지 1 본문에 넣기' }))
+      await user.click(screen.getByRole('button', { name: '등록' }))
+
+      expect(onSubmit).toHaveBeenCalledWith({ title: '제목', content: '[이미지 1]', keepImageIds: [], newImages: [a] })
+    })
+  })
 })
