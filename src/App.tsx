@@ -17,6 +17,7 @@ import Login from '@/pages/Login'
 import Signup from '@/pages/Signup'
 import Intro from '@/pages/Intro'
 import Board from '@/pages/Board'
+import BoardWrite from '@/pages/BoardWrite'
 
 export default function App() {
   return (
@@ -49,6 +50,8 @@ export default function App() {
                 <Route path="/reviews" element={<Reviews />} />
                 <Route path="/study-logs" element={<StudyLogs />} />
                 <Route path="/board" element={<Board />} />
+                <Route path="/board/new" element={<BoardWrite />} />
+                <Route path="/board/:id/edit" element={<BoardWrite />} />
                 <Route path="/mypage" element={<MyPage />} />
               </Routes>
             </Layout>
