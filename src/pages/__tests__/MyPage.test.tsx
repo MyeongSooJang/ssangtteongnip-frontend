@@ -36,6 +36,11 @@ vi.mock('@/hooks/useProfile', () => ({
   useDeleteFile: () => ({ mutate: vi.fn(), isPending: false, error: null, reset: vi.fn() }),
 }))
 
+vi.mock('@/hooks/useNickname', () => ({
+  useNickname: () => ({ data: { nickname: '취준생1' }, isLoading: false, isError: false }),
+  useChangeNickname: () => ({ mutate: vi.fn(), isPending: false, error: null, reset: vi.fn() }),
+}))
+
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <QueryClientProvider client={new QueryClient()}><BrowserRouter>{children}</BrowserRouter></QueryClientProvider>
 )
@@ -137,5 +142,22 @@ describe('MyPage', () => {
 
     expect(updateMutate).not.toHaveBeenCalled()
     expect(screen.getByRole('button', { name: '기본 정보 수정' })).toBeInTheDocument()
+  })
+
+  it('닉네임 탭을 누르면 닉네임 영역을 보여준다', async () => {
+    const user = userEvent.setup()
+    render(<MyPage />, { wrapper })
+
+    await user.click(screen.getByRole('button', { name: '닉네임' }))
+
+    expect(screen.getByText('취준생1')).toBeInTheDocument()
+  })
+
+  it('?tab=nickname으로 들어오면 닉네임 탭이 먼저 열린다', () => {
+    window.history.pushState({}, '', '/mypage?tab=nickname')
+    render(<MyPage />, { wrapper })
+
+    expect(screen.getByRole('button', { name: '닉네임' })).toHaveAttribute('aria-current', 'page')
+    window.history.pushState({}, '', '/')
   })
 })

@@ -181,6 +181,7 @@ export interface CreateScheduleRequest {
 export interface SignupRequest {
   email: string
   name: string
+  nickname: string
   password: string
 }
 
@@ -339,4 +340,54 @@ export interface EvidenceDownload {
   url: string
   fileName: string
   expiresAt: string
+}
+
+// 닉네임을 아직 정하지 않은 기존 가입자는 nickname이 null이다.
+export interface NicknameResponse {
+  nickname: string | null
+}
+
+export interface PostImage {
+  id: string
+  // 서버가 주는 도메인 없는 경로(/api/post-images/{id}). 화면에는 toDisplayUrl로 API 주소를 붙여 쓴다.
+  url: string
+}
+
+export interface PostSummary {
+  id: number
+  title: string
+  nickname: string
+  imageCount: number
+  createdAt: string
+}
+
+// page는 0부터 시작한다.
+export interface PostPage {
+  posts: PostSummary[]
+  page: number
+  pageSize: number
+  totalCount: number
+}
+
+export interface Post {
+  id: number
+  title: string
+  content: string
+  nickname: string
+  // 보는 사람이 작성자면 true. 수정·삭제 버튼을 보일지 정한다.
+  mine: boolean
+  images: PostImage[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PostCreateInput {
+  title: string
+  content: string
+  images: File[]
+}
+
+export interface PostRewriteInput extends PostCreateInput {
+  // 남길 기존 이미지. 빠진 이미지는 서버가 지운다.
+  keepImageIds: string[]
 }
